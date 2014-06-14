@@ -1,28 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using TShockAPI;
+﻿using TShockAPI;
 using Terraria;
 
 namespace Statistics
 {
-    public class sPlayer
+    public class SPlayer
     {
-        public int Index;
+        public readonly int index;
 
-        public TSPlayer TSPlayer { get { return TShock.Players[Index]; } }
-        public string Name { get { return Main.player[Index].name; } }
+        public TSPlayer TsPlayer { get { return TShock.Players[index]; } }
+        public string Name { get { return Main.player[index].name; } }
+        public StoredPlayer storage;
 
-        public bool AFK = false;
-        public int AFKcount = 0;
-        public float lastPosX { get; set; }
-        public float lastPosY { get; set; }
+        public bool afk;
+        public int afkCount;
+        public float LastPosX { get; set; }
+        public float LastPosY { get; set; }
 
-        public int totalPoints { get; set; }
-        public int TimePlayed = 0;
+        public int timePlayed;
 
         public string firstLogin;
         public string lastSeen;
@@ -37,19 +31,19 @@ namespace Statistics
 
         public Vector2 posPoint;
 
-        public sPlayer KillingPlayer = null;
+        public SPlayer killingPlayer;
 
-        public sPlayer(int index)
+        public SPlayer(int index)
         {
-            Index = index;
-            lastPosX = TShock.Players[Index].X;
-            lastPosY = TShock.Players[Index].Y;
+            this.index = index;
+            LastPosX = TShock.Players[this.index].X;
+            LastPosY = TShock.Players[this.index].Y;
         }
     }
 
-    public class storedPlayer
+    public class StoredPlayer
     {
-        public string name;
+        public readonly string name;
         public string firstLogin;
         public string lastSeen;
         public int totalTime;
@@ -62,7 +56,7 @@ namespace Statistics
         public int mobkills;
         public int bosskills;
 
-        public storedPlayer(string name, string firstLogin, string lastSeen, int totalTime, int loginCount,
+        public StoredPlayer(string name, string firstLogin, string lastSeen, int totalTime, int loginCount,
             string knownAccounts, string knownIPs, int kills, int deaths, int mobkills, int bosskills)
         {
             this.name = name;

@@ -1,15 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Xml;
-using System.Reflection;
 using Terraria;
-using MySql.Data.MySqlClient;
-using System.Threading;
-using System.ComponentModel;
 using System.IO;
 using TShockAPI;
-using TShockAPI.DB;
-using TShockAPI.Net;
 using System.IO.Streams;
 
 namespace Statistics
@@ -64,80 +57,69 @@ namespace Statistics
 
         private static bool HandleNPCEvent(GetDataHandlerArgs args)
         {
-            int index = args.Player.Index;
-            byte npcID = (byte)args.Data.ReadByte();
-            byte hitDirection = (byte)args.Data.ReadByte();
-            Int16 Damage = (Int16)args.Data.ReadInt16();
-            bool Crit = args.Data.ReadBoolean();
-            var player = sTools.GetPlayer(index);
+            var index = args.Player.Index;
+            var npcId = (byte)args.Data.ReadByte();
+            var hitDirection = (byte)args.Data.ReadByte();
+            var damage = args.Data.ReadInt16();
+            var crit = args.Data.ReadBoolean();
+            var player = Statistics.Tools.GetPlayer(index);
 
-            if (Main.npc[npcID].target < 255)
+            if (Main.npc[npcId].target < 255)
             {
-                int critical = 1;
-                if (Crit)
+                var critical = 1;
+                if (crit)
                     critical = 2;
-                int hitDamage = (Damage - Main.npc[npcID].defense / 2) * critical;
+                var hitDamage = (damage - Main.npc[npcId].defense / 2) * critical;
 
-                if (hitDamage > Main.npc[npcID].life && Main.npc[npcID].active && Main.npc[npcID].life > 0)
+                if (hitDamage > Main.npc[npcId].life && Main.npc[npcId].active && Main.npc[npcId].life > 0)
                 {
-                    if (!Main.npc[npcID].boss)
+                    if (!Main.npc[npcId].boss)
                         player.mobkills++;
                     else
                         player.bosskills++;
                 }
             }
             else
-            {
                 return true;
-            }
 
             return false;
         }
 
         private static bool HandlePlayerKillMe(GetDataHandlerArgs args)
         {
-            int index = args.Player.Index;
-            byte PlayerID = (byte)args.Data.ReadByte();
-            byte hitDirection = (byte)args.Data.ReadByte();
-            Int16 Damage = (Int16)args.Data.ReadInt16();
-            bool PVP = args.Data.ReadBoolean();
-            var player = sTools.GetPlayer(PlayerID);
+            var index = args.Player.Index;
+            var playerId = (byte)args.Data.ReadByte();
+            var hitDirection = (byte)args.Data.ReadByte();
+            var damage = args.Data.ReadInt16();
+            var pvp = args.Data.ReadBoolean();
+            var player = Statistics.Tools.GetPlayer(playerId);
 
-            if (player.KillingPlayer != null)
+            if (player.killingPlayer != null)
             {
-                if (PVP == true)
+                if (pvp)
                 {
-                    player.KillingPlayer.kills++;
+                    player.killingPlayer.kills++;
                     player.deaths++;
                 }
-                player.KillingPlayer = null;
+                player.killingPlayer = null;
             }
             else
-            {
                 player.deaths++;
-            }
 
             return false;
         }
 
         private static bool HandlePlayerDamage(GetDataHandlerArgs args)
         {
-            int index = args.Player.Index;
-            byte PlayerID = (byte)args.Data.ReadByte();
-            byte hitDirection = (byte)args.Data.ReadByte();
-            Int16 Damage = (Int16)args.Data.ReadInt16();
-            var player = sTools.GetPlayer(PlayerID);
-            bool PVP = args.Data.ReadBoolean();
-            byte Crit = (byte)args.Data.ReadByte();
+            var index = args.Player.Index;
+            var playerId = (byte)args.Data.ReadByte();
+            var hitDirection = (byte)args.Data.ReadByte();
+            var damage = args.Data.ReadInt16();
+            var player = Statistics.Tools.GetPlayer(playerId);
+            var pvp = args.Data.ReadBoolean();
+            var crit = (byte)args.Data.ReadByte();
 
-            if (index != PlayerID)
-            {
-                player.KillingPlayer = sTools.GetPlayer(index);
-            }
-            else
-            {
-                player.KillingPlayer = null;
-            }
+            player.killingPlayer = index != playerId ? Statistics.Tools.GetPlayer(index) : null;
 
             return false;
         }
