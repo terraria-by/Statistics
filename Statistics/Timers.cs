@@ -32,10 +32,13 @@ namespace Statistics
             /* Needs advanced afk checks */
             foreach (var player in Statistics.Players)
             {
+                if (player.afkCount < 300)
+                    player.timePlayed++;
+
                 if ((int)player.TsPlayer.X == (int)player.LastPosX && (int)player.TsPlayer.Y == (int)player.LastPosY)
                 {
                     player.afkCount++;
-                    if (player.afkCount > 300)
+                    if (player.afkCount >= 300)
                     {
                         if (!player.afk)
                         {
@@ -48,7 +51,6 @@ namespace Statistics
                 }
                 else
                 {
-                    player.timePlayed++;
                     if (player.afk)
                         player.afk = false;
 

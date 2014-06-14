@@ -53,7 +53,7 @@ namespace Statistics
         /// <returns></returns>
         public static string TimePlayed(this SPlayer player)
         {
-            var time = player.timePlayed * 1d;
+            double time = player.timePlayed;
             var weeks = Math.Floor(time/604800);
             var days = Math.Floor(((time/604800) - weeks)*7);
 

@@ -300,7 +300,7 @@ namespace Statistics
                     args.Player.SendErrorMessage("{0} must be logged in", player.Name);
                     return;
                 }
-                args.Player.SendSuccessMessage("{0} has been played for {1}", player.TimePlayed(), player.Name);
+                args.Player.SendSuccessMessage("{0} has been playing for {1}", player.Name, player.TimePlayed());
             }
         }
 
@@ -376,6 +376,7 @@ namespace Statistics
             }
             else
             {
+                args.Parameters.RemoveAt(0);
                 var name = string.Join(" ", args.Parameters);
 
                 var players = Statistics.Tools.GetPlayers(name);
@@ -408,7 +409,7 @@ namespace Statistics
                         splayer.name, splayer.kills, splayer.mobkills, splayer.bosskills,
                         splayer.deaths,
                         Tools.Suffix(splayer.kills), Tools.Suffix(splayer.mobkills),
-                        Tools.Suffix(splayer.bosskills), Tools.Suffix(splayer.deaths));
+                        splayer.bosskills > 1 || splayer.bosskills == 0 ? "es" : "", Tools.Suffix(splayer.deaths));
                     return;
                 }
 
@@ -425,7 +426,7 @@ namespace Statistics
                     player.TsPlayer.UserAccountName, player.kills, player.mobkills, player.bosskills,
                     player.deaths,
                     Tools.Suffix(player.kills), Tools.Suffix(player.mobkills),
-                    Tools.Suffix(player.bosskills), Tools.Suffix(player.deaths));
+                    player.bosskills > 1 || player.bosskills == 0 ? "es" : "", Tools.Suffix(player.deaths));
             }
         }
 
@@ -452,7 +453,7 @@ namespace Statistics
                 }
                 if (!self.afk)
                 {
-                    args.Player.SendInfoMessage("You are not listed as 'away'");
+                    args.Player.SendInfoMessage("You are not listed as away");
                     return;
                 }
 
