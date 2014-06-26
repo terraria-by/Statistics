@@ -29,6 +29,11 @@ namespace Statistics
 
         #endregion
 
+        public static string Suffix(this int number)
+        {
+            return number == 0 || number > 1 ? "s" : "";
+        }
+
         #region Player extensions
 
         /// <summary>
