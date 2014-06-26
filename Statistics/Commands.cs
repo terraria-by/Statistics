@@ -490,7 +490,20 @@ namespace Statistics
 
         public static void CmdHighScores(CommandArgs args)
         {
-            Statistics.HighScores.DisplayHighScores(args.Player);
+            if (args.Parameters.Count < 1)
+            {
+                Statistics.HighScores.DisplayHighScores(args.Player);
+                return;
+            }
+
+            int page;
+            if (!HsPagination.TryParsePageNumber(args.Parameters, 0, args.Player, out page))
+            {
+                Statistics.HighScores.DisplayHighScores(args.Player);
+                return;
+            }
+
+            Statistics.HighScores.DisplayHighScores(args.Player, page);
         }
     }
 }
