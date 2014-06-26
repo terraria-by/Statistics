@@ -18,11 +18,17 @@ namespace Statistics
     {
         public static readonly List<SPlayer> Players = new List<SPlayer>();
         public static readonly List<StoredPlayer> StoredPlayers = new List<StoredPlayer>();
+        public static readonly HighScores HighScores = new HighScores();
         private IDbConnection _db;
         public static Database database;
         public static readonly Tools Tools = new Tools();
 
         private Timers _timers;
+
+        /// <summary>
+        /// Not yet implemented
+        /// </summary>
+        public static bool Ssc { get { return TShock.Config.ServerSideCharacter; } }
 
         public override string Author
         { get { return "WhiteX"; } }
@@ -101,6 +107,11 @@ namespace Statistics
                 HelpText = "Provides information about a player's character"
             });
 
+            Commands.ChatCommands.Add(new Command("stats.highscores", SCommands.CmdHighScores, "hs", "highscores")
+            {
+                HelpText = "Displays server highscores, calculated by kills, deaths and time played"
+            });
+
             Tools.RegisterSubs();
 
 
@@ -132,7 +143,6 @@ namespace Statistics
                 throw new Exception("Invalid storage type.");
 
             database = new Database(_db);
-
         }
         #endregion
 
@@ -141,6 +151,7 @@ namespace Statistics
         private void PostInitialize(EventArgs args)
         {
             Database.SyncUsers();
+            Database.SyncHighScores();
             _timers = new Timers();
             _timers.Start();
         }
@@ -179,6 +190,9 @@ namespace Statistics
 
                 database.AddUser(player.storage);
                 player.SyncStats();
+
+                HighScores.highScores.Add(new HighScore(player.Name, player.kills, player.mobkills, player.deaths,
+                    player.bosskills, player.timePlayed));
 
                 return;
             }

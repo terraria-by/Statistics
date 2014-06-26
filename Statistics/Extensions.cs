@@ -1,17 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Statistics
 {
     public static class Extensions
     {
+        #region List extension
+
+        /// <summary>
+        /// Adds a storage item into a list and returns the item
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="player"></param>
+        /// <returns></returns>
         public static StoredPlayer AddAndReturn(this List<StoredPlayer> list, StoredPlayer player)
         {
             list.Add(player);
             return player;
         }
 
+        public static T AddAndReturn<T>(this List<T> list, T item)
+        {
+            list.Add(item);
+            return item;
+        }
+
+        #endregion
+
+        #region Player extensions
+
+        /// <summary>
+        /// Saves a player's stats into stored values
+        /// </summary>
+        /// <param name="player"></param>
         public static void SaveStats(this SPlayer player)
         {
             if (player == null || player.storage == null) return;
@@ -22,6 +45,7 @@ namespace Statistics
             player.storage.loginCount = player.loginCount;
             player.storage.knownAccounts = player.knownAccounts;
             player.storage.knownIPs = player.knownIPs;
+
             player.storage.kills = player.kills;
             player.storage.deaths = player.deaths;
             player.storage.mobkills = player.mobkills;
@@ -29,6 +53,10 @@ namespace Statistics
             Statistics.database.SaveUser(player.storage);
         }
 
+        /// <summary>
+        /// Used on logging in. Syncs a player's stats with stored values matching the player
+        /// </summary>
+        /// <param name="player"></param>
         public static void SyncStats(this SPlayer player)
         {
             if (player.storage == null) return;
@@ -47,7 +75,7 @@ namespace Statistics
         }
 
         /// <summary>
-        /// 
+        /// Returns the amount of time a player has collected
         /// </summary>
         /// <param name="player"></param>
         /// <returns></returns>
@@ -81,6 +109,12 @@ namespace Statistics
             return sb.ToString();
         }
 
+
+        /// <summary>
+        /// Returns the amount of time a stored item has collected
+        /// </summary>
+        /// <param name="player"></param>
+        /// <returns></returns>
         public static string TimePlayed(this StoredPlayer player)
         {
             var time = player.totalTime * 1d;
@@ -111,6 +145,15 @@ namespace Statistics
             return sb.ToString();
         }
 
+        #endregion
+
+        #region TimeSpan extension
+
+        /// <summary>
+        /// Returns the amount of time in a timespan
+        /// </summary>
+        /// <param name="ts"></param>
+        /// <returns></returns>
         public static string TimeSpanPlayed(this TimeSpan ts)
         {
             var sb = new StringBuilder();
@@ -127,5 +170,21 @@ namespace Statistics
 
             return sb.ToString();
         }
+
+        #endregion
+
+        #region HighScore extension
+
+        public static HighScore GetHighScore(this IEnumerable<HighScore> list, string name)
+        {
+            return list.FirstOrDefault(h => String.Equals(h.name, name, StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        public static HighScore GetTopScore(this List<HighScore> list)
+        {
+            return list.Count == 0 ? null : list[0];
+        }
+
+        #endregion
     }
 }

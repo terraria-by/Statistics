@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using MySql.Data.MySqlClient;
@@ -15,26 +16,33 @@ namespace Statistics
        {
            _db = db;
 
-            var sqlCreator = new SqlTableCreator(_db,
-                                             _db.GetSqlType() == SqlType.Sqlite
-                                             ? (IQueryBuilder)new SqliteQueryCreator()
-                                             : new MysqlQueryCreator());
+           var sqlCreator = new SqlTableCreator(_db,
+               _db.GetSqlType() == SqlType.Sqlite
+                   ? (IQueryBuilder) new SqliteQueryCreator()
+                   : new MysqlQueryCreator());
 
-            var table = new SqlTable("Stats",
-                new SqlColumn("ID", MySqlDbType.Int32) { Primary = true, AutoIncrement = true },
-                new SqlColumn("Name", MySqlDbType.VarChar, 50) { Unique = true },
-                new SqlColumn("Time", MySqlDbType.Int32),
-                new SqlColumn("FirstLogin", MySqlDbType.Text),
-                new SqlColumn("LastSeen", MySqlDbType.Text),
-                new SqlColumn("Kills", MySqlDbType.Int32),
-                new SqlColumn("Deaths", MySqlDbType.Int32),
-                new SqlColumn("MobKills", MySqlDbType.Int32),
-                new SqlColumn("BossKills", MySqlDbType.Int32),
-                new SqlColumn("KnownAccounts", MySqlDbType.Text),
-                new SqlColumn("KnownIPs", MySqlDbType.Text),
-                new SqlColumn("LoginCount", MySqlDbType.Int32)
-                );
-            sqlCreator.EnsureExists(table);
+           var table = new SqlTable("Stats",
+               new SqlColumn("ID", MySqlDbType.Int32) {Primary = true, AutoIncrement = true},
+               new SqlColumn("Name", MySqlDbType.VarChar, 50) {Unique = true},
+               new SqlColumn("Time", MySqlDbType.Int32),
+               new SqlColumn("FirstLogin", MySqlDbType.Text),
+               new SqlColumn("LastSeen", MySqlDbType.Text),
+               new SqlColumn("Kills", MySqlDbType.Int32),
+               new SqlColumn("Deaths", MySqlDbType.Int32),
+               new SqlColumn("MobKills", MySqlDbType.Int32),
+               new SqlColumn("BossKills", MySqlDbType.Int32),
+               new SqlColumn("KnownAccounts", MySqlDbType.Text),
+               new SqlColumn("KnownIPs", MySqlDbType.Text),
+               new SqlColumn("LoginCount", MySqlDbType.Int32)
+               );
+           sqlCreator.EnsureExists(table);
+
+           //table = new SqlTable("HighScores",
+           //    new SqlColumn("ID", MySqlDbType.Int32) {Primary = true, AutoIncrement = true},
+           //    new SqlColumn("Name", MySqlDbType.VarChar, 50) {Unique = true},
+           //    new SqlColumn("Score", MySqlDbType.Int32)
+           //    );
+           //sqlCreator.EnsureExists(table);
        }
 
        public static void SyncUsers()
@@ -65,6 +73,16 @@ namespace Statistics
            }
 
            Console.WriteLine("Synced {0} player{1}", count, Tools.Suffix(count));
+       }
+
+       public static void SyncHighScores()
+       {
+           foreach (var player in Statistics.StoredPlayers)
+           {
+               Statistics.HighScores.highScores.AddAndReturn(new HighScore(player.name, player.kills,
+                   player.mobkills,
+                   player.deaths, player.bosskills, player.totalTime));
+           }
        }
 
        public void SaveState()

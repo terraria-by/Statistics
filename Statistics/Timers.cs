@@ -33,7 +33,12 @@ namespace Statistics
             foreach (var player in Statistics.Players)
             {
                 if (player.afkCount < 300)
-                    player.timePlayed++;
+                {
+                    player.timePlayed++; 
+                    Statistics.HighScores.highScores.GetHighScore(player.Name)
+                        .UpdateHighScore(player.kills, player.mobkills, player.deaths, player.bosskills,
+                            player.timePlayed);
+                }
 
                 if ((int)player.TsPlayer.X == (int)player.LastPosX && (int)player.TsPlayer.Y == (int)player.LastPosY)
                 {
@@ -66,7 +71,7 @@ namespace Statistics
         void UpdateTimer(object sender, ElapsedEventArgs args)
         {
             foreach (var player in Statistics.Players.Where(player => !player.afk && player.TsPlayer.IsLoggedIn))
-                player.SyncStats();
+                player.SaveStats();
         }
     }
 }

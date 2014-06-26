@@ -63,6 +63,7 @@
     <Compile Include="DataHandler.cs" />
     <Compile Include="Commands.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="Highscores.cs" />
     <Compile Include="Tools.cs" />
     <Compile Include="Statistics.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

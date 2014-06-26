@@ -5,9 +5,8 @@ using TShockAPI;
 
 namespace Statistics
 {
-    public static class SCommands
+    internal class SCommands
     {
-
         #region UI Extended
 
         public static void CmdUiEx(CommandArgs args)
@@ -488,5 +487,10 @@ namespace Statistics
         }
 
         #endregion
+
+        public static void CmdHighScores(CommandArgs args)
+        {
+            Statistics.HighScores.DisplayHighScores(args.Player);
+        }
     }
 }

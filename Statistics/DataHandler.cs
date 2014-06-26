@@ -13,11 +13,6 @@ namespace Statistics
         public TSPlayer Player { get; private set; }
         public MemoryStream Data { get; private set; }
 
-        public Player TPlayer
-        {
-            get { return Player.TPlayer; }
-        }
-
         public GetDataHandlerArgs(TSPlayer player, MemoryStream data)
         {
             Player = player;
@@ -26,22 +21,22 @@ namespace Statistics
     }
     internal static class GetDataHandlers
     {
-        private static Dictionary<PacketTypes, GetDataHandlerDelegate> GetDataHandlerDelegates;
+        private static Dictionary<PacketTypes, GetDataHandlerDelegate> _getDataHandlerDelegates;
 
         public static void InitGetDataHandler()
         {
-            GetDataHandlerDelegates = new Dictionary<PacketTypes, GetDataHandlerDelegate>
+            _getDataHandlerDelegates = new Dictionary<PacketTypes, GetDataHandlerDelegate>
             {
                 {PacketTypes.PlayerKillMe, HandlePlayerKillMe},             
                 {PacketTypes.PlayerDamage, HandlePlayerDamage},
-                {PacketTypes.NpcStrike, HandleNPCEvent},
+                {PacketTypes.NpcStrike, HandleNpcEvent},
             };
         }
 
         public static bool HandlerGetData(PacketTypes type, TSPlayer player, MemoryStream data)
         {
             GetDataHandlerDelegate handler;
-            if (GetDataHandlerDelegates.TryGetValue(type, out handler))
+            if (_getDataHandlerDelegates.TryGetValue(type, out handler))
             {
                 try
                 {
@@ -55,7 +50,7 @@ namespace Statistics
             return false;
         }
 
-        private static bool HandleNPCEvent(GetDataHandlerArgs args)
+        private static bool HandleNpcEvent(GetDataHandlerArgs args)
         {
             var index = args.Player.Index;
             var npcId = (byte)args.Data.ReadByte();
@@ -77,6 +72,10 @@ namespace Statistics
                         player.mobkills++;
                     else
                         player.bosskills++;
+
+                    Statistics.HighScores.highScores.GetHighScore(player.Name)
+                        .UpdateHighScore(player.kills, player.mobkills, player.deaths, player.bosskills,
+                            player.timePlayed);
                 }
             }
             else
@@ -100,11 +99,24 @@ namespace Statistics
                 {
                     player.killingPlayer.kills++;
                     player.deaths++;
+
+                    Statistics.HighScores.highScores.GetHighScore(player.Name)
+                        .UpdateHighScore(player.kills, player.mobkills, player.deaths, player.bosskills,
+                            player.timePlayed);
+
+                    Statistics.HighScores.highScores.GetHighScore(player.killingPlayer.Name)
+                        .UpdateHighScore(player.killingPlayer.kills, player.killingPlayer.mobkills,
+                            player.killingPlayer.deaths, player.killingPlayer.bosskills, player.killingPlayer.timePlayed);
                 }
                 player.killingPlayer = null;
             }
             else
+            {
                 player.deaths++;
+                Statistics.HighScores.highScores.GetHighScore(player.Name)
+                       .UpdateHighScore(player.kills, player.mobkills, player.deaths, player.bosskills,
+                           player.timePlayed);
+            }
 
             return false;
         }
