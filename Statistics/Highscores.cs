@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using TShockAPI;
 
@@ -22,56 +21,12 @@ namespace Statistics
                 IncludeFooter = true, IncludeHeader = true, MaxLinesPerPage = 5,
                 NothingToDisplayString = "No highscores available"
             });
-            
-            //if (plyHs == null)
-            //{
-            //    //IRC support
-            //    try
-            //    {
-            //        player.SendInfoMessage("Current top {0}player{1}:", ordered.Count >= 3 ? "3 " : "",
-            //            ordered.Count.Suffix());
-            //        player.SendSuccessMessage("1. {0} with {1} point{2}", globalHs.name, globalHs.score,
-            //            globalHs.score.Suffix());
-
-            //        if (ordered.Count >= 3)
-            //        {
-            //            player.SendInfoMessage("2. {0} with {1} point{2}", ordered[1].name, ordered[1].score,
-            //                ordered[1].score.Suffix());
-
-            //            player.SendWarningMessage("3. {0} with {1} point{2}", ordered[2].name, ordered[2].score,
-            //                ordered[2].score.Suffix());
-            //        }
-            //        return;
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        Log.ConsoleError(ex.ToString());
-            //        return;
-            //    }
-            //}
-
-            //if (globalHs == null)
-            //{
-            //    player.SendErrorMessage("Error encountered with high scores: No global high score found!");
-            //    return;
-            //}
-
-            //player.SendInfoMessage("Your high-scores position: {0} ({1} points)", ordered.IndexOf(plyHs) + 1,
-            //    plyHs.score);
-            //player.SendInfoMessage("Current top {0}player{1}:", ordered.Count >= 3 ? "3 " : "",
-            //    ordered.Count >= 3 ? "s" : "");
-            //player.SendSuccessMessage("1. {0} with {1} points", globalHs.name, globalHs.score);
-            //if (ordered.Count >= 3)
-            //{
-            //    player.SendInfoMessage("2. {0} with {1} points", ordered[1].name, ordered[1].score);
-            //    player.SendWarningMessage("3. {0} with {1} points", ordered[2].name, ordered[2].score);
-            //}
         }
     }
 
     public class HighScore
     {
-        public string name;
+        public readonly string name;
         public int score;
 
         public HighScore(string name, int kills, int mobKills, int deaths, int bossKills, int time)
