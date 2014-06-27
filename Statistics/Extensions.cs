@@ -8,19 +8,7 @@ namespace Statistics
     public static class Extensions
     {
         #region List extension
-
-        /// <summary>
-        /// Adds a storage item into a list and returns the item
-        /// </summary>
-        /// <param name="list"></param>
-        /// <param name="player"></param>
-        /// <returns></returns>
-        public static StoredPlayer AddAndReturn(this List<StoredPlayer> list, StoredPlayer player)
-        {
-            list.Add(player);
-            return player;
-        }
-
+        
         public static T AddAndReturn<T>(this List<T> list, T item)
         {
             list.Add(item);
@@ -29,9 +17,12 @@ namespace Statistics
 
         #endregion
 
-        public static string Suffix(this int number)
+        public static string Suffix(this int number, bool bosses = false)
         {
-            return number == 0 || number > 1 ? "s" : "";
+            if (!bosses)
+                return number == 0 || number > 1 ? "s" : "";
+
+            return number == 0 || number > 1 ? "es" : "";
         }
 
         #region Player extensions
@@ -87,29 +78,32 @@ namespace Statistics
         public static string TimePlayed(this SPlayer player)
         {
             double time = player.timePlayed;
-            var weeks = Math.Floor(time/604800);
-            var days = Math.Floor(((time/604800) - weeks)*7);
+            var weeks = (int)Math.Floor(time/604800);
+            var days = (int)Math.Floor(((time/604800) - weeks)*7);
 
             var ts = new TimeSpan(0, 0, 0, (int) time);
 
             var sb = new StringBuilder();
 
             if (weeks > 0)
-                sb.Append(string.Format("{0} week{1}{2}", weeks, Tools.Suffix((int)weeks),
+                sb.Append(string.Format("{0} week{1}{2}", weeks, weeks.Suffix(),
                     days > 0 || ts.Hours > 0 || ts.Minutes > 0 || ts.Seconds > 0 ? ", " : ""));
             if (days > 0)
-                sb.Append(string.Format("{0} day{1}{2}", days, Tools.Suffix((int)days),
+                sb.Append(string.Format("{0} day{1}{2}", days, days.Suffix(),
                     ts.Hours > 0 || ts.Minutes > 0 || ts.Seconds > 0 ? ", " : ""));
             if (ts.Hours > 0)
-                sb.Append(string.Format("{0} hour{1}{2}", ts.Hours, Tools.Suffix(ts.Hours),
+                sb.Append(string.Format("{0} hour{1}{2}", ts.Hours, ts.Hours.Suffix(),
                     ts.Minutes > 0 || ts.Seconds > 0 ? ", " : ""));
 
             if (ts.Minutes > 0)
-                sb.Append(string.Format("{0} minute{1}{2}", ts.Minutes, Tools.Suffix(ts.Minutes),
+                sb.Append(string.Format("{0} minute{1}{2}", ts.Minutes, ts.Minutes.Suffix(),
                     ts.Seconds > 0 ? ", " : ""));
 
             if (ts.Seconds > 0)
-                sb.Append(string.Format("{0} second{1}", ts.Seconds, Tools.Suffix(ts.Seconds)));
+                sb.Append(string.Format("{0} second{1}", ts.Seconds, ts.Seconds.Suffix()));
+
+            if (sb.Length == 0)
+                return player.storage.TimePlayed();
 
             return sb.ToString();
         }
@@ -123,29 +117,32 @@ namespace Statistics
         public static string TimePlayed(this StoredPlayer player)
         {
             var time = player.totalTime * 1d;
-            var weeks = Math.Floor(time / 604800);
-            var days = Math.Floor(((time / 604800) - weeks) * 7);
+            var weeks = (int)Math.Floor(time / 604800);
+            var days = (int)Math.Floor(((time / 604800) - weeks) * 7);
 
             var ts = new TimeSpan(0, 0, 0, (int)time);
 
             var sb = new StringBuilder();
 
             if (weeks > 0)
-                sb.Append(string.Format("{0} week{1}{2}", weeks, Tools.Suffix((int)weeks),
+                sb.Append(string.Format("{0} week{1}{2}", weeks, weeks.Suffix(),
                     days > 0 || ts.Hours > 0 || ts.Minutes > 0 || ts.Seconds > 0 ? ", " : ""));
             if (days > 0)
-                sb.Append(string.Format("{0} day{1}{2}", days, Tools.Suffix((int)days),
+                sb.Append(string.Format("{0} day{1}{2}", days, days.Suffix(),
                     ts.Hours > 0 || ts.Minutes > 0 || ts.Seconds > 0 ? ", " : ""));
             if (ts.Hours > 0)
-                sb.Append(string.Format("{0} hour{1}{2}", ts.Hours, Tools.Suffix(ts.Hours),
+                sb.Append(string.Format("{0} hour{1}{2}", ts.Hours, ts.Hours.Suffix(),
                     ts.Minutes > 0 || ts.Seconds > 0 ? ", " : ""));
 
             if (ts.Minutes > 0)
-                sb.Append(string.Format("{0} minute{1}{2}", ts.Minutes, Tools.Suffix(ts.Minutes),
+                sb.Append(string.Format("{0} minute{1}{2}", ts.Minutes, ts.Minutes.Suffix(),
                     ts.Seconds > 0 ? ", " : ""));
 
             if (ts.Seconds > 0)
-                sb.Append(string.Format("{0} second{1}", ts.Seconds, Tools.Suffix(ts.Seconds)));
+                sb.Append(string.Format("{0} second{1}", ts.Seconds, ts.Seconds.Suffix()));
+
+            if (sb.Length == 0)
+                return "an unknown period of time";
 
             return sb.ToString();
         }
@@ -163,15 +160,18 @@ namespace Statistics
         {
             var sb = new StringBuilder();
             if (ts.Hours > 0)
-                sb.Append(string.Format("{0} hour{1}{2}", ts.Hours, Tools.Suffix(ts.Hours),
+                sb.Append(string.Format("{0} hour{1}{2}", ts.Hours, ts.Hours.Suffix(),
                     ts.Minutes > 0 || ts.Seconds > 0 ? ", " : ""));
 
             if (ts.Minutes > 0)
-                sb.Append(string.Format("{0} minute{1}{2}", ts.Minutes, Tools.Suffix(ts.Minutes),
+                sb.Append(string.Format("{0} minute{1}{2}", ts.Minutes, ts.Minutes.Suffix(),
                     ts.Seconds > 0 ? ", " : ""));
 
             if (ts.Seconds > 0)
-                sb.Append(string.Format("{0} second{1}", ts.Seconds, Tools.Suffix(ts.Seconds)));
+                sb.Append(string.Format("{0} second{1}", ts.Seconds, ts.Seconds.Suffix()));
+
+            if (sb.Length == 0)
+                return "an unknown period of time";
 
             return sb.ToString();
         }
@@ -183,11 +183,6 @@ namespace Statistics
         public static HighScore GetHighScore(this IEnumerable<HighScore> list, string name)
         {
             return list.FirstOrDefault(h => String.Equals(h.name, name, StringComparison.CurrentCultureIgnoreCase));
-        }
-
-        public static HighScore GetTopScore(this List<HighScore> list)
-        {
-            return list.Count == 0 ? null : list[0];
         }
 
         #endregion

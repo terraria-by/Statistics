@@ -72,7 +72,7 @@ namespace Statistics
                }
            }
 
-           Console.WriteLine("Synced {0} player{1}", count, Tools.Suffix(count));
+           Console.WriteLine("Synced {0} player{1}", count, count.Suffix());
        }
 
        public static void SyncHighScores()

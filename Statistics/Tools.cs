@@ -224,11 +224,6 @@ namespace Statistics
 
             handler.helpText = "Valid subcommands of /check:|[time \\ afk \\ kills]|Syntax: /check [option] [playerName \\ self]";
         }
-        
-        public static string Suffix(int number)
-        {
-            return number > 1 || number == 0 ? "s" : "";
-        }
     }
 
     public class SubCommandHandler

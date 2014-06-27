@@ -370,8 +370,8 @@ namespace Statistics
                 args.Player.SendInfoMessage(
                     "You have killed {0} player{4}, {1} mob{5}, {2} boss{6} and died {3} time{7}",
                     self.kills, self.mobkills, self.bosskills, self.deaths,
-                    Tools.Suffix(self.kills), Tools.Suffix(self.mobkills),
-                    Tools.Suffix(self.bosskills), Tools.Suffix(self.deaths));
+                    self.kills.Suffix(), self.mobkills.Suffix(),
+                    self.bosskills.Suffix(), self.deaths.Suffix());
             }
             else
             {
@@ -407,8 +407,8 @@ namespace Statistics
                         "{0} has killed {1} player{5}, {2} mob{6}, {3} boss{7} and died {4} time{8}",
                         splayer.name, splayer.kills, splayer.mobkills, splayer.bosskills,
                         splayer.deaths,
-                        Tools.Suffix(splayer.kills), Tools.Suffix(splayer.mobkills),
-                        splayer.bosskills > 1 || splayer.bosskills == 0 ? "es" : "", Tools.Suffix(splayer.deaths));
+                        splayer.kills.Suffix(), splayer.mobkills.Suffix(),
+                        splayer.bosskills.Suffix(true), splayer.deaths.Suffix());
                     return;
                 }
 
@@ -424,8 +424,8 @@ namespace Statistics
                     "{0} has killed {1} player{5}, {2} mob{6}, {3} boss{7} and died {4} time{8}",
                     player.TsPlayer.UserAccountName, player.kills, player.mobkills, player.bosskills,
                     player.deaths,
-                    Tools.Suffix(player.kills), Tools.Suffix(player.mobkills),
-                    player.bosskills > 1 || player.bosskills == 0 ? "es" : "", Tools.Suffix(player.deaths));
+                    player.kills.Suffix(), player.mobkills.Suffix(),
+                    player.bosskills.Suffix(true), player.deaths.Suffix());
             }
         }
 
@@ -479,8 +479,8 @@ namespace Statistics
                 var player = players[0];
 
                 if (player.afk)
-                    args.Player.SendInfoMessage("{0} has been away for {1} second{0}",
-                        player.Name, player.afkCount, Tools.Suffix(player.afkCount));
+                    args.Player.SendInfoMessage("{0} has been away for {1} second{3}",
+                        player.Name, player.afkCount, player.afkCount.Suffix());
                 else
                     args.Player.SendInfoMessage("{0} is not away", player.Name);
             }
