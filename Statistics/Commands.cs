@@ -456,7 +456,7 @@ namespace Statistics
                     return;
                 }
 
-                args.Player.SendInfoMessage("You have been away for {0} seconds", self.afkCount);
+                args.Player.SendInfoMessage("You have been away for {0} second{1}", self.afkCount, self.afkCount.Suffix());
             }
             else
             {
@@ -479,7 +479,7 @@ namespace Statistics
                 var player = players[0];
 
                 if (player.afk)
-                    args.Player.SendInfoMessage("{0} has been away for {1} second{3}",
+                    args.Player.SendInfoMessage("{0} has been away for {1} second{2}",
                         player.Name, player.afkCount, player.afkCount.Suffix());
                 else
                     args.Player.SendInfoMessage("{0} is not away", player.Name);
