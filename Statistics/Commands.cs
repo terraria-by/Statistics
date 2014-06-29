@@ -371,7 +371,7 @@ namespace Statistics
                     "You have killed {0} player{4}, {1} mob{5}, {2} boss{6} and died {3} time{7}",
                     self.kills, self.mobkills, self.bosskills, self.deaths,
                     self.kills.Suffix(), self.mobkills.Suffix(),
-                    self.bosskills.Suffix(), self.deaths.Suffix());
+                    self.bosskills.Suffix(true), self.deaths.Suffix());
             }
             else
             {
