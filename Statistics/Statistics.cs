@@ -170,17 +170,9 @@ namespace Statistics
                 return;
             }
 
-            var storage = Tools.GetStoredPlayers(args.Player.UserAccountName);
+            var storage = Tools.GetStoredPlayerExact(args.Player.UserAccountName);
 
-            if (storage.Count > 1)
-            {
-                Log.ConsoleError("Multiple match error! --Attempting to obtain stored player for {0} resulted in" +
-                                 " {1} matches: {2}", args.Player.UserAccountName,
-                    Tools.GetStoredPlayers(args.Player.UserAccountName).Count,
-                    Tools.GetStoredPlayers(args.Player.UserAccountName).Select(p => p.name));
-                return;
-            }
-            if (storage.Count == 0)
+            if (storage == null)
             {
                 Log.ConsoleInfo("{0} has been registered to Statistics", args.Player.UserAccountName);
 
@@ -197,7 +189,7 @@ namespace Statistics
                 return;
             }
 
-            player.storage = storage[0];
+            player.storage = storage;
 
             if (player.storage.knownIPs.Length > 0)
             {

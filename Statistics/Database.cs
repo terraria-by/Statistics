@@ -36,13 +36,6 @@ namespace Statistics
                new SqlColumn("LoginCount", MySqlDbType.Int32)
                );
            sqlCreator.EnsureExists(table);
-
-           //table = new SqlTable("HighScores",
-           //    new SqlColumn("ID", MySqlDbType.Int32) {Primary = true, AutoIncrement = true},
-           //    new SqlColumn("Name", MySqlDbType.VarChar, 50) {Unique = true},
-           //    new SqlColumn("Score", MySqlDbType.Int32)
-           //    );
-           //sqlCreator.EnsureExists(table);
        }
 
        public static void SyncUsers()

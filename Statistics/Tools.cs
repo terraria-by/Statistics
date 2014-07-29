@@ -21,7 +21,7 @@ namespace Statistics
         }
 
         /// <summary>
-        /// Returns an sPlayer through UserAccountName matching
+        /// Returns a List of sPlayers through UserAccountName matching
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -30,7 +30,7 @@ namespace Statistics
             var matches = new List<SPlayer>();
             foreach (var player in Statistics.Players.Where(player => player.TsPlayer.IsLoggedIn))
             {
-                if (String.Equals(player.TsPlayer.UserAccountName, name, StringComparison.CurrentCultureIgnoreCase))
+                if (String.Equals(player.TsPlayer.UserAccountName, name, StringComparison.InvariantCultureIgnoreCase))
                     return new List<SPlayer> { player };
                 if (player.TsPlayer.UserAccountName.ToLower().Contains(name.ToLower()) && !matches.Contains(player))
                     matches.Add(player);
@@ -193,12 +193,17 @@ namespace Statistics
             return matches;
         }
 
+        public StoredPlayer GetStoredPlayerExact(string name)
+        {
+            return Statistics.StoredPlayers.FirstOrDefault(p => p.name == name);
+        }
+
         public List<StoredPlayer> GetStoredPlayers(string name)
         {
             var matches = new List<StoredPlayer>();
             foreach (var storedplayer in Statistics.StoredPlayers)
             {
-                if (String.Equals(storedplayer.name, name, StringComparison.CurrentCultureIgnoreCase))
+                if (String.Equals(storedplayer.name, name, StringComparison.InvariantCultureIgnoreCase))
                     return new List<StoredPlayer> { storedplayer };
                 if (storedplayer.name.ToLower().Contains(name.ToLower()) && !matches.Contains(storedplayer))
                     matches.Add(storedplayer);

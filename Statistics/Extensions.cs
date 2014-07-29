@@ -11,8 +11,12 @@ namespace Statistics
         
         public static T AddAndReturn<T>(this List<T> list, T item)
         {
-            list.Add(item);
-            return item;
+            if (!list.Contains(item))
+            {
+                list.Add(item);
+                return item;
+            }
+            return default(T);
         }
 
         #endregion
