@@ -53,9 +53,10 @@ namespace Statistics
         private static bool HandleNpcEvent(GetDataHandlerArgs args)
         {
             var index = args.Player.Index;
-            var npcId = (byte)args.Data.ReadByte();
-            var hitDirection = (byte)args.Data.ReadByte();
+            var npcId = args.Data.ReadInt16();
             var damage = args.Data.ReadInt16();
+            var knockback = args.Data.ReadSingle();
+            var hitDirection = (byte)args.Data.ReadByte();
             var crit = args.Data.ReadBoolean();
             var player = Statistics.Tools.GetPlayer(index);
 
