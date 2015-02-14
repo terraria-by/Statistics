@@ -1,114 +1,246 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
+using System.Globalization;
+using System.IO;
+using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using TShockAPI;
 using TShockAPI.DB;
 
 namespace Statistics
 {
-   public class Database
+    public enum KillType
     {
-       private static IDbConnection _db;
+        Mob = 0,
+        Boss,
+        Player
+    }
 
-       public Database(IDbConnection db)
-       {
-           _db = db;
 
-           var sqlCreator = new SqlTableCreator(_db,
-               _db.GetSqlType() == SqlType.Sqlite
-                   ? (IQueryBuilder) new SqliteQueryCreator()
-                   : new MysqlQueryCreator());
+    public class Database
+    {
+        private readonly IDbConnection _db;
+        private static SqlTableCreator _creator;
+        private static bool _mysql;
 
-           var table = new SqlTable("Stats",
-               new SqlColumn("ID", MySqlDbType.Int32) {Primary = true, AutoIncrement = true},
-               new SqlColumn("Name", MySqlDbType.VarChar, 50) {Unique = true},
-               new SqlColumn("Time", MySqlDbType.Int32),
-               new SqlColumn("FirstLogin", MySqlDbType.Text),
-               new SqlColumn("LastSeen", MySqlDbType.Text),
-               new SqlColumn("Kills", MySqlDbType.Int32),
-               new SqlColumn("Deaths", MySqlDbType.Int32),
-               new SqlColumn("MobKills", MySqlDbType.Int32),
-               new SqlColumn("BossKills", MySqlDbType.Int32),
-               new SqlColumn("KnownAccounts", MySqlDbType.Text),
-               new SqlColumn("KnownIPs", MySqlDbType.Text),
-               new SqlColumn("LoginCount", MySqlDbType.Int32)
-               );
-           sqlCreator.EnsureExists(table);
+        internal void Import()
+        {
+            using (var reader = Statistics.tshock.QueryReader("SELECT Username FROM Users"))
+            {
+                while (reader.Read())
+                {
+                    var query = _mysql
+                        ? "INSERT INTO Statistics (Username, PlayerKills, Deaths, MobKills, BossKills, Logins, Time) " +
+                          "VALUES (@0, @1, @2, @3, @4, @5, @6) ON DUPLICATE KEY UPDATE Time=Time"
+                        : "INSERT OR IGNORE INTO Statistics (Username, PlayerKills, Deaths, MobKills, BossKills, Logins, Time) " +
+                          "VALUES (@0, @1, @2, @3, @4, @5, @6)";
+                    Query(query, reader.Get<string>("Username"), 0, 0, 0, 0, 0, 0);
 
-           //table = new SqlTable("HighScores",
-           //    new SqlColumn("ID", MySqlDbType.Int32) {Primary = true, AutoIncrement = true},
-           //    new SqlColumn("Name", MySqlDbType.VarChar, 50) {Unique = true},
-           //    new SqlColumn("Score", MySqlDbType.Int32)
-           //    );
-           //sqlCreator.EnsureExists(table);
-       }
+                    query = _mysql
+                        ? "INSERT INTO Highscores (Username, Score) VALUES (@0, @1) ON DUPLICATE KEY UPDATE Score=Score"
+                        : "INSERT OR IGNORE INTO Highscores (Username, Score) VALUES (@0, @1)";
+                    Query(query, reader.Get<string>("Username"), 0);
+                }
+            }
+        }
 
-       public static void SyncUsers()
-       {
-           var count = 0;
-           using (var reader = _db.QueryReader("SELECT * FROM Stats"))
-           {
-               while (reader.Read())
-               {
-                   var name = reader.Get<string>("Name");
-                   var totalTime = reader.Get<int>("Time");
-                   var firstLogin = reader.Get<string>("FirstLogin");
-                   var lastSeen = reader.Get<string>("LastSeen");
+        internal void CheckUpdateInclude(string username)
+        {
+            using (var reader = QueryReader("SELECT Logins FROM Statistics WHERE Username = @0", username))
+            {
+                if (reader.Read())
+                    Query("UPDATE Statistics SET Logins = Logins + 1 WHERE Username = @0", username);
+                else
+                {
+                    Query("INSERT INTO Statistics (Username, PlayerKills, Deaths, MobKills, BossKills, Logins, Time) " +
+                          "VALUES (@0, @1, @2, @3, @4, @5, @6)", username, 0, 0, 0, 0, 0, 0);
+                    Query("INSERT INTO Highscores (Username, Score) VALUES (@0, @1)", username, 0);
+                }
+            }
+        }
 
-                   var knownAccounts = reader.Get<string>("KnownAccounts");
-                   var knownIPs = reader.Get<string>("KnownIPs");
-                   var loginCount = reader.Get<int>("LoginCount");
+        internal QueryResult QueryReader(string query, params object[] args)
+        {
+            return _db.QueryReader(query, args);
+        }
 
-                   var kills = reader.Get<int>("Kills");
-                   var deaths = reader.Get<int>("Deaths");
-                   var mobKills = reader.Get<int>("MobKills");
-                   var bossKills = reader.Get<int>("BossKills");
+        internal int Query(string query, params object[] args)
+        {
+            return _db.Query(query, args);
+        }
 
-                   Statistics.StoredPlayers.Add(new StoredPlayer(name, firstLogin, lastSeen, totalTime, loginCount, knownAccounts, knownIPs,
-                       kills, deaths, mobKills, bossKills));
-                   count++;
-               }
-           }
+        internal void EnsureExists(SqlTable table)
+        {
+            _creator.EnsureExists(table);
+        }
 
-           Console.WriteLine("Synced {0} player{1}", count, count.Suffix());
-       }
+        internal void EnsureExists(params SqlTable[] tables)
+        {
+            foreach (var table in tables)
+                EnsureExists(table);
+        }
 
-       public static void SyncHighScores()
-       {
-           foreach (var player in Statistics.StoredPlayers)
-           {
-               Statistics.HighScores.highScores.AddAndReturn(new HighScore(player.name, player.kills,
-                   player.mobkills,
-                   player.deaths, player.bosskills, player.totalTime));
-           }
-       }
+        internal void UpdateTime(string username, int time)
+        {
+            var query = string.Format("UPDATE Statistics SET Time = Time + {0} WHERE Username = @0",
+                time);
+            Query(query, username);
+        }
 
-       public void SaveState()
-       {
-           foreach (var player in Statistics.Players.Where(player => player.TsPlayer.IsLoggedIn))
-               player.SaveStats();
+        internal void UpdateKills(string username, KillType type)
+        {
+            var query = string.Format("UPDATE Statistics SET {0}Kills = {0}Kills + 1 WHERE Username = @0",
+                type);
 
-           Log.ConsoleInfo("[STATISTICS] Database save complete");
-       }
+            Query(query, username);
+        }
 
-       public void AddUser(StoredPlayer storage)
-       {
-           _db.Query("INSERT INTO Stats " +
-                     "(Name, Time, FirstLogin, LastSeen, KnownAccounts, KnownIPs, LoginCount, Kills, Deaths, MobKills, BossKills) " +
-                     "VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10)",
-               storage.name, storage.totalTime, storage.firstLogin, storage.lastSeen, storage.knownAccounts,
-               storage.knownIPs,
-               storage.loginCount, storage.kills, storage.deaths, storage.mobkills, storage.bosskills);
-       }
+        internal void UpdateDeaths(string username)
+        {
+            Query("UPDATE Statistics SET Deaths = Deaths + 1 WHERE Username = @0", username);
+        }
 
-       public void SaveUser(StoredPlayer player)
-       {
-           _db.Query("UPDATE Stats SET Time = @0, LastSeen = @1, Kills = @2, Deaths = @3, MobKills = @4, " +
-                     "BossKills = @5, LoginCount = @6 WHERE Name = @7",
-               player.totalTime, DateTime.Now.ToString("G"), player.kills, player.deaths, player.mobkills,
-               player.bosskills, player.loginCount, player.name);
-       }
+        internal void UpdateHighScores(string username)
+        {
+            var kills = GetKills(username);
+            var score = ((2*kills[0]) + kills[1] + (3*kills[2]))/(kills[3] == 0 ? 1 : kills[3]);
+
+            var query = string.Format("UPDATE Highscores SET Score = {0} WHERE Username = @0",
+                score);
+            Query(query, username);
+        }
+
+        internal int[] GetKills(string username)
+        {
+            using (
+                var reader =
+                    QueryReader("SELECT PlayerKills, MobKills, BossKills, Deaths FROM Statistics WHERE Username = @0",
+                        username))
+            {
+                if (reader.Read())
+                {
+                    return new[]
+                    {
+                        reader.Get<int>("PlayerKills"), reader.Get<int>("MobKills"), reader.Get<int>("BossKills"),
+                        reader.Get<int>("Deaths")
+                    };
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Returns an array of timespans. 
+        /// [0] -> registered time
+        /// [1] -> played time
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns></returns>
+        internal TimeSpan[] GetTimes(string username)
+        {
+            var ts = new TimeSpan[2];
+            using (
+                var reader = Statistics.tshock.QueryReader("SELECT Registered FROM Users WHERE Username = @0",
+                    username))
+            {
+                if (reader.Read())
+                {
+                    ts[0] = DateTime.UtcNow -
+                            DateTime.ParseExact(reader.Get<string>("Registered"), "s", CultureInfo.CurrentCulture,
+                                DateTimeStyles.AdjustToUniversal);
+                }
+                else
+                    return null;
+            }
+
+            using (var reader = QueryReader("SELECT Time from Statistics WHERE Username = @0", username))
+            {
+                if (reader.Read())
+                    ts[1] = new TimeSpan(0, 0, 0, reader.Get<int>("Time"));
+                else
+                    return null;
+            }
+
+            return ts;
+        }
+
+        internal TimeSpan GetLastSeen(string username)
+        {
+            using (var reader = Statistics.tshock.QueryReader("SELECT LastAccessed FROM Users WHERE Username = @0",
+                username))
+            {
+                if (reader.Read())
+                {
+                    return DateTime.UtcNow -
+                           DateTime.ParseExact(reader.Get<string>("LastAccessed"), "s", CultureInfo.CurrentCulture,
+                               DateTimeStyles.AdjustToUniversal);
+                }
+            }
+            return TimeSpan.MaxValue;
+        }
+
+        internal Dictionary<string, int> GetHighScores(int page)
+        {
+            var ret = new Dictionary<string, int>();
+            var index = (page - 1)*5;
+            var query = string.Format("SELECT * FROM Highscores ORDER BY -Score LIMIT {0}, {1}", index, index + 5);
+            using (var reader = QueryReader(query))
+            {
+                while (reader.Read())
+                    ret.Add(reader.Get<string>("Username"), reader.Get<int>("Score"));
+            }
+            return ret;
+        }
+
+
+        private Database(IDbConnection db)
+        {
+            _db = db;
+
+            _creator = new SqlTableCreator(_db,
+                _db.GetSqlType() == SqlType.Sqlite
+                    ? (IQueryBuilder) new SqliteQueryCreator()
+                    : new MysqlQueryCreator());
+        }
+
+        public static Database InitDb(string name)
+        {
+            IDbConnection idb;
+
+            if (TShock.Config.StorageType.ToLower() == "sqlite")
+                idb =
+                    new SqliteConnection(string.Format("uri=file://{0},Version=3",
+                        Path.Combine(TShock.SavePath, name + ".sqlite")));
+
+            else if (TShock.Config.StorageType.ToLower() == "mysql")
+            {
+                try
+                {
+                    var host = TShock.Config.MySqlHost.Split(':');
+                    idb = new MySqlConnection
+                    {
+                        ConnectionString = String.Format("Server={0}; Port={1}; Database={2}; Uid={3}; Pwd={4}",
+                            host[0],
+                            host.Length == 1 ? "3306" : host[1],
+                            TShock.Config.MySqlDbName,
+                            TShock.Config.MySqlUsername,
+                            TShock.Config.MySqlPassword
+                            )
+                    };
+                    _mysql = true;
+                }
+                catch (MySqlException x)
+                {
+                    Log.Error(x.ToString());
+                    throw new Exception("MySQL not setup correctly.");
+                }
+            }
+            else
+                throw new Exception("Invalid storage type.");
+
+            var db = new Database(idb);
+            return db;
+        }
     }
 }

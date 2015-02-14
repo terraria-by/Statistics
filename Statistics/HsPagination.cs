@@ -76,7 +76,6 @@ namespace Statistics
                 }
             }
 
-
             public FormatSettings()
             {
                 IncludeHeader = true;
@@ -90,7 +89,6 @@ namespace Statistics
                 _pageLimit = 0;
             }
         }
-
 
         public static void SendPage(
             TSPlayer player, int pageNumber, Dictionary<string, int> dictionary, int dataToPaginateCount,
@@ -182,7 +180,7 @@ namespace Statistics
                         settings.FooterTextColor);
             }
         }
-        
+
         public static void SendPage(TSPlayer player, int pageNumber, Dictionary<string, int> dataToPaginate,
             FormatSettings settings = null)
         {

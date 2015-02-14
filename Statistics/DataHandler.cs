@@ -4,10 +4,12 @@ using Terraria;
 using System.IO;
 using TShockAPI;
 using System.IO.Streams;
+using System.Linq;
 
 namespace Statistics
 {
     internal delegate bool GetDataHandlerDelegate(GetDataHandlerArgs args);
+
     internal class GetDataHandlerArgs : EventArgs
     {
         public TSPlayer Player { get; private set; }
@@ -19,6 +21,7 @@ namespace Statistics
             Data = data;
         }
     }
+
     internal static class GetDataHandlers
     {
         private static Dictionary<PacketTypes, GetDataHandlerDelegate> _getDataHandlerDelegates;
@@ -27,7 +30,7 @@ namespace Statistics
         {
             _getDataHandlerDelegates = new Dictionary<PacketTypes, GetDataHandlerDelegate>
             {
-                {PacketTypes.PlayerKillMe, HandlePlayerKillMe},             
+                {PacketTypes.PlayerKillMe, HandlePlayerKillMe},
                 {PacketTypes.PlayerDamage, HandlePlayerDamage},
                 {PacketTypes.NpcStrike, HandleNpcEvent},
             };
@@ -53,29 +56,29 @@ namespace Statistics
         private static bool HandleNpcEvent(GetDataHandlerArgs args)
         {
             var index = args.Player.Index;
-            var npcId = (byte)args.Data.ReadByte();
-            var hitDirection = (byte)args.Data.ReadByte();
+            var npcId = (byte) args.Data.ReadByte();
+            args.Data.ReadByte();
             var damage = args.Data.ReadInt16();
             var crit = args.Data.ReadBoolean();
-            var player = Statistics.Tools.GetPlayer(index);
+            var player = TShock.Players.First(p => p.Index == index);
 
             if (Main.npc[npcId].target < 255)
             {
                 var critical = 1;
                 if (crit)
                     critical = 2;
-                var hitDamage = (damage - Main.npc[npcId].defense / 2) * critical;
+                var hitDamage = (damage - Main.npc[npcId].defense/2)*critical;
 
                 if (hitDamage > Main.npc[npcId].life && Main.npc[npcId].active && Main.npc[npcId].life > 0)
                 {
+                    //not a boss kill
                     if (!Main.npc[npcId].boss)
-                        player.mobkills++;
+                        Statistics.database.UpdateKills(player.UserAccountName, KillType.Mob);
+                    //a boss kill
                     else
-                        player.bosskills++;
+                        Statistics.database.UpdateKills(player.UserAccountName, KillType.Boss);
 
-                    Statistics.HighScores.highScores.GetHighScore(player.Name)
-                        .UpdateHighScore(player.kills, player.mobkills, player.deaths, player.bosskills,
-                            player.timePlayed);
+                    Statistics.database.UpdateHighScores(player.UserAccountName);
                 }
             }
             else
@@ -87,36 +90,27 @@ namespace Statistics
         private static bool HandlePlayerKillMe(GetDataHandlerArgs args)
         {
             var index = args.Player.Index;
-            var playerId = (byte)args.Data.ReadByte();
-            var hitDirection = (byte)args.Data.ReadByte();
-            var damage = args.Data.ReadInt16();
+            args.Data.ReadByte();
+            args.Data.ReadByte();
+            args.Data.ReadInt16();
             var pvp = args.Data.ReadBoolean();
-            var player = Statistics.Tools.GetPlayer(playerId);
+            var player = TShock.Players.First(p => p.Index == index);
 
-            if (player.killingPlayer != null)
+            if (Statistics.PlayerKilling[player] != null)
             {
                 if (pvp)
                 {
-                    player.killingPlayer.kills++;
-                    player.deaths++;
+                    Statistics.database.UpdateKills(Statistics.PlayerKilling[player].UserAccountName, KillType.Player);
+                    Statistics.database.UpdateDeaths(player.UserAccountName);
 
-                    Statistics.HighScores.highScores.GetHighScore(player.Name)
-                        .UpdateHighScore(player.kills, player.mobkills, player.deaths, player.bosskills,
-                            player.timePlayed);
-
-                    Statistics.HighScores.highScores.GetHighScore(player.killingPlayer.Name)
-                        .UpdateHighScore(player.killingPlayer.kills, player.killingPlayer.mobkills,
-                            player.killingPlayer.deaths, player.killingPlayer.bosskills, player.killingPlayer.timePlayed);
+                    Statistics.database.UpdateHighScores(Statistics.PlayerKilling[player].UserAccountName);
                 }
-                player.killingPlayer = null;
+                Statistics.PlayerKilling[player] = null;
             }
             else
-            {
-                player.deaths++;
-                Statistics.HighScores.highScores.GetHighScore(player.Name)
-                       .UpdateHighScore(player.kills, player.mobkills, player.deaths, player.bosskills,
-                           player.timePlayed);
-            }
+                Statistics.database.UpdateDeaths(player.UserAccountName);
+
+            Statistics.database.UpdateHighScores(player.UserAccountName);
 
             return false;
         }
@@ -124,14 +118,14 @@ namespace Statistics
         private static bool HandlePlayerDamage(GetDataHandlerArgs args)
         {
             var index = args.Player.Index;
-            var playerId = (byte)args.Data.ReadByte();
-            var hitDirection = (byte)args.Data.ReadByte();
-            var damage = args.Data.ReadInt16();
-            var player = Statistics.Tools.GetPlayer(playerId);
-            var pvp = args.Data.ReadBoolean();
-            var crit = (byte)args.Data.ReadByte();
+            var playerId = (byte) args.Data.ReadByte();
+            args.Data.ReadByte();
+            args.Data.ReadInt16();
+            var player = TShock.Players.First(p => p.Index == playerId);
+            args.Data.ReadBoolean();
+            args.Data.ReadByte();
 
-            player.killingPlayer = index != playerId ? Statistics.Tools.GetPlayer(index) : null;
+            Statistics.PlayerKilling[player] = index != playerId ? TShock.Players.First(p => p.Index == index) : null;
 
             return false;
         }
