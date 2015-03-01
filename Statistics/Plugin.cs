@@ -118,6 +118,8 @@ namespace Statistics
 
 		private static void GreetPlayer(GreetPlayerEventArgs args)
 		{
+			if (TShock.Players[args.Who] == null) return;
+
 			if (PlayerKilling.ContainsKey(TShock.Players[args.Who]))
 				PlayerKilling.Remove(TShock.Players[args.Who]);
 
@@ -126,6 +128,8 @@ namespace Statistics
 
 		private static void PlayerLeave(LeaveEventArgs args)
 		{
+			if (TShock.Players[args.Who] == null) return;
+
 			if (PlayerKilling.ContainsKey(TShock.Players[args.Who]))
 				PlayerKilling.Remove(TShock.Players[args.Who]);
 
