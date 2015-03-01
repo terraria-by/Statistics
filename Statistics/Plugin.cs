@@ -12,210 +12,211 @@ using TShockAPI.Hooks;
 
 namespace Statistics
 {
-    [ApiVersion(1, 16)]
-    public class Statistics : TerrariaPlugin
-    {
-        internal static Database tshock;
-        internal static Database database;
-        internal static readonly Dictionary<TSPlayer, TSPlayer> PlayerKilling = new Dictionary<TSPlayer, TSPlayer>();
-        internal static readonly int[] TimeCache = new int[Main.player.Length];
+	[ApiVersion(1, 16)]
+	public class Statistics : TerrariaPlugin
+	{
+		internal static Database tshock;
+		internal static Database database;
+		internal static readonly Dictionary<TSPlayer, TSPlayer> PlayerKilling = new Dictionary<TSPlayer, TSPlayer>();
+		internal static readonly int[] TimeCache = new int[Main.player.Length];
 
-        private readonly Timer _counter = new Timer(1000);
-        private readonly Timer _timeSaver = new Timer(60*1000*10);
+		private readonly Timer _counter = new Timer(1000);
+		private readonly Timer _timeSaver = new Timer(60*1000*5);
 
-        public override string Author
-        {
-            get { return "White"; }
-        }
+		public override string Author
+		{
+			get { return "White"; }
+		}
 
-        public override string Description
-        {
-            get { return "Stat tracking for Terraria"; }
-        }
+		public override string Description
+		{
+			get { return "Stat tracking for Terraria"; }
+		}
 
-        public override string Name
-        {
-            get { return "Statistics"; }
-        }
+		public override string Name
+		{
+			get { return "Statistics"; }
+		}
 
-        public override Version Version
-        {
-            get { return new Version(0, 0, 1); }
-        }
-
-
-        public Statistics(Main game)
-            : base(game)
-        {
-        }
-
-        public override void Initialize()
-        {
-            ServerApi.Hooks.NetGetData.Register(this, GetData);
-            ServerApi.Hooks.NetGreetPlayer.Register(this, GreetPlayer);
-            ServerApi.Hooks.ServerLeave.Register(this, PlayerLeave);
-            ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
-
-            PlayerHooks.PlayerPostLogin += PlayerPostLogin;
-
-            GetDataHandlers.InitGetDataHandler();
-
-            _counter.Elapsed += CounterOnElapsed;
-            _counter.Start();
-            _timeSaver.Elapsed += TimeSaverOnElapsed;
-            _timeSaver.Start();
+		public override Version Version
+		{
+			get { return new Version(0, 0, 1); }
+		}
 
 
-            TShockAPI.Commands.ChatCommands.Add(new Command("statistics.root", Commands.Core, "info"));
-        }
+		public Statistics(Main game)
+			: base(game)
+		{
+		}
 
-        private void OnInitialize(EventArgs args)
-        {
-            database = Database.InitDb("Statistics");
-            tshock = Database.InitDb("tshock");
+		public override void Initialize()
+		{
+			ServerApi.Hooks.NetGetData.Register(this, GetData);
+			ServerApi.Hooks.NetGreetPlayer.Register(this, GreetPlayer);
+			ServerApi.Hooks.ServerLeave.Register(this, PlayerLeave);
+			ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
 
-            var table = new SqlTable("Statistics",
-                new SqlColumn("ID", MySqlDbType.Int32) { Unique = true, AutoIncrement = true },
-                new SqlColumn("Username", MySqlDbType.VarChar, 32) { Primary = true },
-                new SqlColumn("Time", MySqlDbType.Int32),
-                new SqlColumn("PlayerKills", MySqlDbType.Int32),
-                new SqlColumn("Deaths", MySqlDbType.Int32),
-                new SqlColumn("MobKills", MySqlDbType.Int32),
-                new SqlColumn("BossKills", MySqlDbType.Int32),
-                new SqlColumn("Logins", MySqlDbType.Int32));
+			PlayerHooks.PlayerPostLogin += PlayerPostLogin;
 
-            var table2 = new SqlTable("Highscores",
-                new SqlColumn("ID", MySqlDbType.Int32) { Unique = true, AutoIncrement = true },
-                new SqlColumn("Username", MySqlDbType.VarChar, 32) { Primary = true },
-                new SqlColumn("Score", MySqlDbType.Int32));
+			GetDataHandlers.InitGetDataHandler();
 
-            database.EnsureExists(table, table2);
+			_counter.Elapsed += CounterOnElapsed;
+			_counter.Start();
+			_timeSaver.Elapsed += TimeSaverOnElapsed;
+			_timeSaver.Start();
 
-            database.Import();
-        }
 
-        private static void TimeSaverOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
-        {
-            foreach (var player in TShock.Players)
-                if (player != null && player.ConnectionAlive && player.RealPlayer && player.IsLoggedIn)
-                    database.UpdateTime(player.UserAccountName, TimeCache[player.Index]);
-        }
+			TShockAPI.Commands.ChatCommands.Add(new Command("statistics.root", Commands.Core, "info"));
+		}
 
-        private static void CounterOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
-        {
-            foreach (var player in TShock.Players)
-                if (player != null && player.ConnectionAlive && player.RealPlayer && player.IsLoggedIn)
-                    TimeCache[player.Index]++;
-        }
+		private void OnInitialize(EventArgs args)
+		{
+			database = Database.InitDb("Statistics");
+			tshock = Database.InitDb("tshock");
 
-        private static void PlayerPostLogin(PlayerPostLoginEventArgs args)
-        {
-            database.CheckUpdateInclude(args.Player.UserAccountName);
-        }
+			var table = new SqlTable("Statistics",
+				new SqlColumn("ID", MySqlDbType.Int32) {Unique = true, Primary = true, AutoIncrement = true},
+				new SqlColumn("UserID", MySqlDbType.Int32) {Unique = true},
+				new SqlColumn("Time", MySqlDbType.Int32),
+				new SqlColumn("PlayerKills", MySqlDbType.Int32),
+				new SqlColumn("Deaths", MySqlDbType.Int32),
+				new SqlColumn("MobKills", MySqlDbType.Int32),
+				new SqlColumn("BossKills", MySqlDbType.Int32),
+				new SqlColumn("Logins", MySqlDbType.Int32));
 
-        private static void GreetPlayer(GreetPlayerEventArgs args)
-        {
-            if (PlayerKilling.ContainsKey(TShock.Players[args.Who]))
-                PlayerKilling.Remove(TShock.Players[args.Who]);
+			var table2 = new SqlTable("Highscores",
+				new SqlColumn("ID", MySqlDbType.Int32) {Unique = true, Primary = true, AutoIncrement = true},
+				new SqlColumn("UserID", MySqlDbType.Int32) {Unique = true},
+				new SqlColumn("Score", MySqlDbType.Int32));
 
-            PlayerKilling.Add(TShock.Players[args.Who], null);
+			database.EnsureExists(table, table2);
 
-            if (TShock.Players[args.Who].IsLoggedIn)
-                PlayerPostLogin(new PlayerPostLoginEventArgs(TShock.Players[args.Who]));
-        }
+			//database.Import();
+		}
 
-        private static void PlayerLeave(LeaveEventArgs args)
-        {
-            if (PlayerKilling.ContainsKey(TShock.Players[args.Who]))
-                PlayerKilling.Remove(TShock.Players[args.Who]);
+		private static void TimeSaverOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
+		{
+			foreach (var player in TShock.Players)
+				if (player != null && player.ConnectionAlive && player.RealPlayer && player.IsLoggedIn)
+				{
+					database.UpdateTime(player.UserID, TimeCache[player.Index]);
+					TimeCache[player.Index] = 0;
+				}
+		}
 
-            if (TShock.Players[args.Who].IsLoggedIn)
-            {
-                database.UpdateTime(TShock.Players[args.Who].UserAccountName, TimeCache[args.Who]);
-                TimeCache[args.Who] = 0;
-            }
-        }
+		private static void CounterOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
+		{
+			foreach (var player in TShock.Players)
+				if (player != null && player.ConnectionAlive && player.RealPlayer && player.IsLoggedIn)
+					TimeCache[player.Index]++;
+		}
 
-        #region GetData
+		private static void PlayerPostLogin(PlayerPostLoginEventArgs args)
+		{
+			database.CheckUpdateInclude(args.Player.UserID);
+		}
 
-        private static void GetData(GetDataEventArgs args)
-        {
-            var type = args.MsgID;
-            var player = TShock.Players[args.Msg.whoAmI];
+		private static void GreetPlayer(GreetPlayerEventArgs args)
+		{
+			if (PlayerKilling.ContainsKey(TShock.Players[args.Who]))
+				PlayerKilling.Remove(TShock.Players[args.Who]);
 
-            if (player == null)
-            {
-                args.Handled = true;
-                return;
-            }
+			PlayerKilling.Add(TShock.Players[args.Who], null);
+		}
 
-            if (!player.ConnectionAlive)
-            {
-                args.Handled = true;
-                return;
-            }
+		private static void PlayerLeave(LeaveEventArgs args)
+		{
+			if (PlayerKilling.ContainsKey(TShock.Players[args.Who]))
+				PlayerKilling.Remove(TShock.Players[args.Who]);
 
-            using (var data = new MemoryStream(args.Msg.readBuffer, args.Index, args.Length))
-            {
-                try
-                {
-                    if (GetDataHandlers.HandlerGetData(type, player, data))
-                        args.Handled = true;
-                }
-                catch (Exception ex)
-                {
-                    Log.ConsoleError(ex.ToString());
-                }
-            }
-        }
+			if (TShock.Players[args.Who].IsLoggedIn)
+			{
+				database.UpdateTime(TShock.Players[args.Who].UserID, TimeCache[args.Who]);
+				TimeCache[args.Who] = 0;
+			}
+		}
 
-        #endregion
+		#region GetData
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                ServerApi.Hooks.NetGetData.Deregister(this, GetData);
-                ServerApi.Hooks.NetGreetPlayer.Deregister(this, GreetPlayer);
-                ServerApi.Hooks.ServerLeave.Deregister(this, PlayerLeave);
-                ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
+		private static void GetData(GetDataEventArgs args)
+		{
+			var type = args.MsgID;
+			var player = TShock.Players[args.Msg.whoAmI];
 
-                PlayerHooks.PlayerPostLogin -= PlayerPostLogin;
-            }
-            base.Dispose(disposing);
-        }
-    }
+			if (player == null)
+			{
+				args.Handled = true;
+				return;
+			}
 
-    public static class Extensions
-    {
-        public static string SToString(this TimeSpan ts)
-        {
-            var sb = new StringBuilder();
-            if (ts.Days > 0)
-                sb.Append(string.Format("{0} day{1}{2}", ts.Days, ts.Days.Suffix(),
-                    ts.Hours > 0 || ts.Minutes > 0 || ts.Seconds > 0 ? ", " : ""));
-            if (ts.Hours > 0)
-                sb.Append(string.Format("{0} hour{1}{2}", ts.Hours, ts.Hours.Suffix(),
-                    ts.Minutes > 0 || ts.Seconds > 0 ? ", " : ""));
-            if (ts.Minutes > 0)
-                sb.Append(string.Format("{0} minute{1}{2}", ts.Minutes, ts.Minutes.Suffix(),
-                    ts.Seconds > 0 ? ", " : ""));
-            if (ts.Seconds > 0)
-                sb.Append(string.Format("{0} second{1}", ts.Seconds, ts.Seconds.Suffix()));
-            if (sb.Length == 0)
-            {
-                Log.ConsoleInfo("Timespan error. Possible time check of an unplayed account.");
-                return "an unknown period of time";
-            }
-            return sb.ToString();
-        }
+			if (!player.ConnectionAlive)
+			{
+				args.Handled = true;
+				return;
+			}
 
-        public static string Suffix(this int s, bool es = false)
-        {
-            if (s > 1 || s == 0)
-                return (es ? "es" : "s");
+			using (var data = new MemoryStream(args.Msg.readBuffer, args.Index, args.Length))
+			{
+				try
+				{
+					if (GetDataHandlers.HandlerGetData(type, player, data))
+						args.Handled = true;
+				}
+				catch (Exception ex)
+				{
+					Log.ConsoleError(ex.ToString());
+				}
+			}
+		}
 
-            return string.Empty;
-        }
-    }
+		#endregion
+
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				ServerApi.Hooks.NetGetData.Deregister(this, GetData);
+				ServerApi.Hooks.NetGreetPlayer.Deregister(this, GreetPlayer);
+				ServerApi.Hooks.ServerLeave.Deregister(this, PlayerLeave);
+				ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
+
+				PlayerHooks.PlayerPostLogin -= PlayerPostLogin;
+			}
+			base.Dispose(disposing);
+		}
+	}
+
+	public static class Extensions
+	{
+		public static string SToString(this TimeSpan ts)
+		{
+			var sb = new StringBuilder();
+			if (ts.Days > 0)
+				sb.Append(string.Format("{0} day{1}{2}", ts.Days, ts.Days.Suffix(),
+					ts.Hours > 0 || ts.Minutes > 0 || ts.Seconds > 0 ? ", " : ""));
+			if (ts.Hours > 0)
+				sb.Append(string.Format("{0} hour{1}{2}", ts.Hours, ts.Hours.Suffix(),
+					ts.Minutes > 0 || ts.Seconds > 0 ? ", " : ""));
+			if (ts.Minutes > 0)
+				sb.Append(string.Format("{0} minute{1}{2}", ts.Minutes, ts.Minutes.Suffix(),
+					ts.Seconds > 0 ? ", " : ""));
+			if (ts.Seconds > 0 || sb.Length == 0)
+				sb.Append(string.Format("{0} second{1}", ts.Seconds, ts.Seconds.Suffix()));
+
+			if (sb.Length == 0)
+			{
+				Log.ConsoleInfo("Timespan error. Possible time check of an unplayed account.");
+				return "an unknown period of time";
+			}
+			return sb.ToString();
+		}
+
+		public static string Suffix(this int s, bool es = false)
+		{
+			if (s > 1 || s == 0)
+				return (es ? "es" : "s");
+
+			return string.Empty;
+		}
+	}
 }
