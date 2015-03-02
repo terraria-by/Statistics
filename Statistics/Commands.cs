@@ -14,7 +14,7 @@ namespace Statistics
 			{
 				args.Player.SendErrorMessage("Invalid syntax. /info [flag] <player name>");
 				args.Player.SendErrorMessage(
-					"Valid flags: -k : kills, -t : time, -s : seen, -hs : highscores, -i : info, -ix : extended info");
+					"Valid flags: -k : kills, -t : time, -s : seen, -hs : highscores, -d : damage");
 				return;
 			}
 
@@ -60,9 +60,10 @@ namespace Statistics
 				case "-t":
 				case "-time":
 				{
+					var logins = 1;
 					if (args.Parameters.Count < 2)
 					{
-						var times = Statistics.database.GetTimes(args.Player.UserID);
+						var times = Statistics.database.GetTimes(args.Player.UserID, ref logins);
 						if (times == null)
 							args.Player.SendErrorMessage("Unable to discover your times. Sorry.");
 						else
@@ -70,6 +71,7 @@ namespace Statistics
 							var total = times[1].Add(new TimeSpan(0, 0, 0, Statistics.TimeCache[args.Player.Index]));
 							args.Player.SendSuccessMessage("You have played for {0}.", total.SToString());
 							args.Player.SendSuccessMessage("You have been registered for {0}.", times[0].SToString());
+							args.Player.SendSuccessMessage("You have logged in {0} times.", logins);
 						}
 					}
 					else
@@ -90,7 +92,7 @@ namespace Statistics
 
 						var user = users[0];
 
-						var times = Statistics.database.GetTimes(user.ID);
+						var times = Statistics.database.GetTimes(user.ID, ref logins);
 						if (times == null)
 							args.Player.SendErrorMessage("Unable to discover the times of {0}. Sorry.",
 								user.Name);
@@ -100,6 +102,7 @@ namespace Statistics
 								times[1].SToString());
 							args.Player.SendSuccessMessage("{0} has been registered for {1}.", user.Name,
 								times[0].SToString());
+							args.Player.SendSuccessMessage("{0} has logged in {1} times.", user.Name, logins);
 						}
 					}
 					break;
@@ -128,10 +131,10 @@ namespace Statistics
 						var user = users[0];
 						var seen = Statistics.database.GetLastSeen(user.ID);
 						if (seen == TimeSpan.MaxValue)
-							args.Player.SendErrorMessage("Unable to find {0}'s last online time.",
+							args.Player.SendErrorMessage("Unable to find {0}'s last login time.",
 								user.Name);
 						else
-							args.Player.SendSuccessMessage("{0} was last online {1} ago.", user.Name, seen.SToString());
+							args.Player.SendSuccessMessage("{0} last logged in {1} ago.", user.Name, seen.SToString());
 					}
 
 					break;
@@ -160,10 +163,39 @@ namespace Statistics
 
 					break;
 				}
-				case "-i":
-				case "-info":
+				case "-d":
+				case "-damage":
 				{
+					int mob = 0, boss = 0, player = 0, received = 0;
+					if (args.Parameters.Count < 2)
+					{
+						Statistics.database.GetDamage(args.Player.UserID, ref mob, ref boss, ref player, ref received);
+						args.Player.SendSuccessMessage("You have dealt {0} damage to mobs, {1} damage to bosses "
+						                               + "and {2} damage to players.", mob, boss, player);
+						args.Player.SendSuccessMessage("You have been dealt {0} damage.", received);
+					}
+					else
+					{
+						var name = args.Parameters[1];
+						var users = GetUsers(name);
+						if (users.Count > 1)
+						{
+							args.Player.SendErrorMessage("More than one user matched your search '{0}': {1}",
+								name, string.Join(", ", users.Select(u => u.Name)));
+							break;
+						}
+						if (users.Count == 0)
+						{
+							args.Player.SendErrorMessage("No users matched your search '{0}'", name);
+							break;
+						}
 
+						var user = users[0];
+						Statistics.database.GetDamage(user.ID, ref mob, ref boss, ref player, ref received);
+						args.Player.SendSuccessMessage("{0} has dealt {1} damage to mobs, {2} damage to bosses " 
+							+ "and {3} damage to players.", user.Name, mob, boss, player);
+						args.Player.SendSuccessMessage("{0} has been dealt {1} damage.", user.Name, received);
+					}
 					break;
 				}
 				case "-ix":

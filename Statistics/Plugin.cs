@@ -20,6 +20,11 @@ namespace Statistics
 		internal static readonly Dictionary<TSPlayer, TSPlayer> PlayerKilling = new Dictionary<TSPlayer, TSPlayer>();
 		internal static readonly int[] TimeCache = new int[Main.player.Length];
 
+		internal static readonly Dictionary<KillType, int>[] SentDamageCache = 
+			new Dictionary<KillType, int>[Main.player.Length];
+
+		internal static readonly int[] RecvDamageCache = new int[Main.player.Length];
+
 		private readonly Timer _counter = new Timer(1000);
 		private readonly Timer _timeSaver = new Timer(60*1000*5);
 
@@ -82,7 +87,11 @@ namespace Statistics
 				new SqlColumn("Deaths", MySqlDbType.Int32),
 				new SqlColumn("MobKills", MySqlDbType.Int32),
 				new SqlColumn("BossKills", MySqlDbType.Int32),
-				new SqlColumn("Logins", MySqlDbType.Int32));
+				new SqlColumn("Logins", MySqlDbType.Int32),
+				new SqlColumn("MobDamageGiven", MySqlDbType.Int32),
+				new SqlColumn("BossDamageGiven", MySqlDbType.Int32),
+				new SqlColumn("PlayerDamageGiven", MySqlDbType.Int32),
+				new SqlColumn("DamageReceived", MySqlDbType.Int32));
 
 			var table2 = new SqlTable("Highscores",
 				new SqlColumn("ID", MySqlDbType.Int32) {Unique = true, Primary = true, AutoIncrement = true},
@@ -124,6 +133,17 @@ namespace Statistics
 				PlayerKilling.Remove(TShock.Players[args.Who]);
 
 			PlayerKilling.Add(TShock.Players[args.Who], null);
+
+			TimeCache[args.Who] = 0;
+
+			SentDamageCache[args.Who] = new Dictionary<KillType, int>
+			{
+				{KillType.Mob, 0},
+				{KillType.Boss, 0},
+				{KillType.Player, 0}
+			};
+
+			RecvDamageCache[args.Who] = 0;
 		}
 
 		private static void PlayerLeave(LeaveEventArgs args)

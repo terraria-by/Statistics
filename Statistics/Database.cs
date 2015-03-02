@@ -20,28 +20,6 @@ namespace Statistics
 	public class Database
 	{
 		private readonly IDbConnection _db;
-		private static bool MySql { get; set; }
-
-		//internal void Import()
-		//{
-		//	using (var reader = Statistics.tshock.QueryReader("SELECT ID FROM Users"))
-		//	{
-		//		while (reader.Read())
-		//		{
-		//			var query = MySql
-		//				? "INSERT INTO Statistics (UserID, PlayerKills, Deaths, MobKills, BossKills, Logins, Time) " +
-		//				  "VALUES (@0, @1, @2, @3, @4, @5, @6) ON DUPLICATE KEY UPDATE Time=Time"
-		//				: "INSERT OR IGNORE INTO Statistics (UserID, PlayerKills, Deaths, MobKills, BossKills, Logins, Time) " +
-		//				  "VALUES (@0, @1, @2, @3, @4, @5, @6)";
-		//			Query(query, reader.Get<string>("ID"), 0, 0, 0, 0, 0, 0);
-
-		//			query = MySql
-		//				? "INSERT INTO Highscores (UserID, Score) VALUES (@0, @1) ON DUPLICATE KEY UPDATE Score=Score"
-		//				: "INSERT OR IGNORE INTO Highscores (UserID, Score) VALUES (@0, @1)";
-		//			Query(query, reader.Get<string>("ID"), 0);
-		//		}
-		//	}
-		//}
 
 		internal void CheckUpdateInclude(int userId)
 		{
@@ -55,8 +33,10 @@ namespace Statistics
 				Query("UPDATE Statistics SET Logins = Logins + 1 WHERE UserID = @0", userId);
 			else
 			{
-				Query("INSERT INTO Statistics (UserID, PlayerKills, Deaths, MobKills, BossKills, Logins, Time) " +
-				      "VALUES (@0, @1, @2, @3, @4, @5, @6)", userId, 0, 0, 0, 0, 0, 0);
+				Query("INSERT INTO Statistics (UserID, PlayerKills, Deaths, MobKills, BossKills, Logins, Time, " +
+					"MobDamageGiven, BossDamageGiven, PlayerDamageGiven, DamageReceived) " + 
+					"VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10)",
+					userId, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 				Query("INSERT INTO Highscores (UserID, Score) VALUES (@0, @1)", userId, 0);
 			}
 		}
@@ -117,6 +97,63 @@ namespace Statistics
 			Query(query, userId);
 		}
 
+		internal void UpdateMobDamageGiven(int userId, int playerIndex)
+		{
+			var damage = Statistics.SentDamageCache[playerIndex][KillType.Mob];
+
+			Query(string.Format("UPDATE Statistics SET MobDamageGiven = MobDamageGiven + {0} WHERE UserID = @0", damage),
+				userId);
+
+			Statistics.SentDamageCache[playerIndex][KillType.Mob] = 0;
+		}
+
+		internal void UpdateBossDamageGiven(int userId, int playerIndex)
+		{
+			var damage = Statistics.SentDamageCache[playerIndex][KillType.Boss];
+
+			Query(string.Format("UPDATE Statistics SET BossDamageGiven = BossDamageGiven + {0} WHERE UserID = @0", damage),
+				userId);
+
+			Statistics.SentDamageCache[playerIndex][KillType.Boss] = 0;
+		}
+
+		internal void UpdatePlayerDamageGiven(int userId, int playerIndex)
+		{
+			var damage = Statistics.SentDamageCache[playerIndex][KillType.Player];
+
+			if (damage < 1) return;
+
+			Query(string.Format("UPDATE Statistics SET PlayerDamageGiven = PlayerDamageGiven + {0} WHERE UserID = @0", damage),
+				userId);
+
+			Statistics.SentDamageCache[playerIndex][KillType.Player] = 0;
+		}
+
+		internal void UpdateDamageReceived(int userId, int playerIndex)
+		{
+			var damage = Statistics.RecvDamageCache[playerIndex];
+
+			Query(string.Format("UPDATE Statistics SET DamageReceived = DamageReceived + {0} WHERE UserID = @0",
+				damage), userId);
+
+			Statistics.RecvDamageCache[playerIndex] = 0;
+		}
+
+		internal void GetDamage(int userId, ref int mob, ref int boss, ref int player, ref int recv)
+		{
+			using (var reader = QueryReader("SELECT MobDamageGiven, BossDamageGiven, PlayerDamageGiven, DamageReceived "
+			                                + "FROM Statistics WHERE UserID = @0", userId))
+			{
+				if (reader.Read())
+				{
+					mob = reader.Get<int>("MobDamageGiven");
+					boss = reader.Get<int>("BossDamageGiven");
+					player = reader.Get<int>("PlayerDamageGiven");
+					recv = reader.Get<int>("DamageReceived");
+				}
+			}
+		}
+
 		internal int[] GetKills(int userId)
 		{
 			using (
@@ -142,8 +179,9 @@ namespace Statistics
 		/// [1] -> played time
 		/// </summary>
 		/// <param name="userId"></param>
+		/// <param name="logins"></param>
 		/// <returns></returns>
-		internal TimeSpan[] GetTimes(int userId)
+		internal TimeSpan[] GetTimes(int userId, ref int logins)
 		{
 			var ts = new TimeSpan[2];
 			using (
@@ -160,10 +198,13 @@ namespace Statistics
 					return null;
 			}
 
-			using (var reader = QueryReader("SELECT Time from Statistics WHERE UserID = @0", userId))
+			using (var reader = QueryReader("SELECT Time, Logins from Statistics WHERE UserID = @0", userId))
 			{
 				if (reader.Read())
+				{
 					ts[1] = new TimeSpan(0, 0, 0, reader.Get<int>("Time"));
+					logins = reader.Get<int>("Logins");
+				}
 				else
 					return null;
 			}
@@ -229,7 +270,6 @@ namespace Statistics
 							TShock.Config.MySqlPassword
 							)
 					};
-					MySql = true;
 				}
 				catch (MySqlException x)
 				{
