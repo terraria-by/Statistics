@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using TShockAPI;
+using TShockAPI.DB;
 
 namespace Statistics
 {
@@ -74,11 +75,11 @@ namespace Statistics
 					else
 					{
 						var name = args.Parameters[1];
-						var users = TShock.Users.GetUsers().Where(u => u.Name.StartsWith(name)).ToList();
+						var users = GetUsers(name);
 						if (users.Count > 1)
 						{
-							args.Player.SendErrorMessage("More than one user matched your search '{0}'",
-								name);
+							args.Player.SendErrorMessage("More than one user matched your search '{0}': {1}",
+								name, string.Join(", ", users.Select(u => u.Name)));
 							break;
 						}
 						if (users.Count == 0)
@@ -111,11 +112,11 @@ namespace Statistics
 					else
 					{
 						var name = args.Parameters[1];
-						var users = TShock.Users.GetUsers().Where(u => u.Name.StartsWith(name)).ToList();
+						var users = GetUsers(name);
 						if (users.Count > 1)
 						{
-							args.Player.SendErrorMessage("More than one user matched your search '{0}'",
-								name);
+							args.Player.SendErrorMessage("More than one user matched your search '{0}': {1}",
+								name, string.Join(", ", users.Select(u => u.Name)));
 							break;
 						}
 						if (users.Count == 0)
@@ -171,6 +172,20 @@ namespace Statistics
 					break;
 				}
 			}
+		}
+
+		private static List<User> GetUsers(string username)
+		{
+			var users = TShock.Users.GetUsers();
+			var ret = new List<User>();
+			foreach (var user in users)
+			{
+				if (user.Name.Equals(username))
+					return new List<User> {user};
+				if (user.Name.StartsWith(username))
+					ret.Add(user);
+			}
+			return ret;
 		}
 	}
 }
