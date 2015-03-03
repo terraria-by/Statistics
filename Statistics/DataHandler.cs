@@ -161,6 +161,10 @@ namespace Statistics
 			var damage = args.Data.ReadInt16();
 			//player being attacked
 			var player = TShock.Players.First(p => p.Index == playerId);
+
+			if (player == null)
+				return false;
+
 			var crit = args.Data.ReadBoolean();
 			args.Data.ReadByte();
 
