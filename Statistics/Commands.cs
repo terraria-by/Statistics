@@ -166,13 +166,17 @@ namespace Statistics
 				case "-d":
 				case "-damage":
 				{
-					int mob = 0, boss = 0, player = 0, received = 0;
 					if (args.Parameters.Count < 2)
 					{
-						Statistics.database.GetDamage(args.Player.UserID, ref mob, ref boss, ref player, ref received);
+						var damages = Statistics.database.GetDamage(args.Player.UserID);
+						if (damages == null)
+						{
+							args.Player.SendErrorMessage("Unable to discover your damage statistics. Sorry.");
+							return;
+						}
 						args.Player.SendSuccessMessage("You have dealt {0} damage to mobs, {1} damage to bosses "
-						                               + "and {2} damage to players.", mob, boss, player);
-						args.Player.SendSuccessMessage("You have been dealt {0} damage.", received);
+													   + "and {2} damage to players.", damages[0], damages[1], damages[2]);
+						args.Player.SendSuccessMessage("You have been dealt {0} damage.", damages[3]);
 					}
 					else
 					{
@@ -191,10 +195,15 @@ namespace Statistics
 						}
 
 						var user = users[0];
-						Statistics.database.GetDamage(user.ID, ref mob, ref boss, ref player, ref received);
-						args.Player.SendSuccessMessage("{0} has dealt {1} damage to mobs, {2} damage to bosses " 
-							+ "and {3} damage to players.", user.Name, mob, boss, player);
-						args.Player.SendSuccessMessage("{0} has been dealt {1} damage.", user.Name, received);
+						var damages = Statistics.database.GetDamage(user.ID);
+						if (damages == null)
+						{
+							args.Player.SendErrorMessage("Unable to discover your damage statistics. Sorry.");
+							return;
+						}
+						args.Player.SendSuccessMessage("{0} has dealt {1} damage to mobs, {2} damage to bosses "
+							+ "and {3} damage to players.", user.Name, damages[0], damages[1], damages[2]);
+						args.Player.SendSuccessMessage("{0} has been dealt {1} damage.", user.Name, damages[3]);
 					}
 					break;
 				}

@@ -139,19 +139,23 @@ namespace Statistics
 			Statistics.RecvDamageCache[playerIndex] = 0;
 		}
 
-		internal void GetDamage(int userId, ref int mob, ref int boss, ref int player, ref int recv)
+		internal int[] GetDamage(int userId)
 		{
 			using (var reader = QueryReader("SELECT MobDamageGiven, BossDamageGiven, PlayerDamageGiven, DamageReceived "
 			                                + "FROM Statistics WHERE UserID = @0", userId))
 			{
 				if (reader.Read())
 				{
-					mob = reader.Get<int>("MobDamageGiven");
-					boss = reader.Get<int>("BossDamageGiven");
-					player = reader.Get<int>("PlayerDamageGiven");
-					recv = reader.Get<int>("DamageReceived");
+					return new[]
+					{
+						reader.Get<int>("MobDamageGiven"),
+						reader.Get<int>("BossDamageGiven"),
+						reader.Get<int>("PlayerDamageGiven"),
+						reader.Get<int>("DamageReceived")
+					};
 				}
 			}
+			return null;
 		}
 
 		internal int[] GetKills(int userId)
