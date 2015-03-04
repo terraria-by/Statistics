@@ -55,6 +55,7 @@ namespace Statistics
 
 		private static bool HandleNpcEvent(GetDataHandlerArgs args)
 		{
+			if (args.Player == null) return false;
 			var index = args.Player.Index;
 			var npcId = (byte) args.Data.ReadByte();
 			args.Data.ReadByte();
@@ -115,6 +116,7 @@ namespace Statistics
 
 		private static bool HandlePlayerKillMe(GetDataHandlerArgs args)
 		{
+			if (args.Player == null) return false;
 			var index = args.Player.Index;
 			args.Data.ReadByte();
 			args.Data.ReadByte();
@@ -155,6 +157,7 @@ namespace Statistics
 
 		private static bool HandlePlayerDamage(GetDataHandlerArgs args)
 		{
+			if (args.Player == null) return false;
 			var index = args.Player.Index;
 			var playerId = (byte) args.Data.ReadByte();
 			args.Data.ReadByte();
