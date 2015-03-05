@@ -239,7 +239,11 @@ namespace Statistics
 			using (var reader = QueryReader(query))
 			{
 				while (reader.Read())
-					ret.Add(TShock.Users.GetUserByID(reader.Get<int>("UserID")).Name, reader.Get<int>("Score"));
+				{
+					var user = TShock.Users.GetUserByID(reader.Get<int>("UserID"));
+					if (user == null) continue;
+					ret.Add(user.Name, reader.Get<int>("Score"));
+				}
 			}
 			return ret;
 		}
