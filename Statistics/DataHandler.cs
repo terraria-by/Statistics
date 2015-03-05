@@ -61,7 +61,7 @@ namespace Statistics
 			args.Data.ReadByte();
 			var damage = args.Data.ReadInt16();
 			var crit = args.Data.ReadBoolean();
-			var player = TShock.Players.First(p => p.Index == index);
+			var player = TShock.Players.First(p => p != null && p.Index == index);
 
 			if (player == null)
 				return false;
@@ -122,7 +122,7 @@ namespace Statistics
 			args.Data.ReadByte();
 			args.Data.ReadInt16();
 			var pvp = args.Data.ReadBoolean();
-			var player = TShock.Players.First(p => p.Index == index);
+			var player = TShock.Players.First(p => p != null && p.Index == index);
 
 			if (player == null)
 				return false;
@@ -163,7 +163,7 @@ namespace Statistics
 			args.Data.ReadByte();
 			var damage = args.Data.ReadInt16();
 			//player being attacked
-			var player = TShock.Players.First(p => p.Index == playerId);
+			var player = TShock.Players.First(p => p != null && p.Index == index);
 
 			if (player == null)
 				return false;
