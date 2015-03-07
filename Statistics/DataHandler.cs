@@ -47,7 +47,7 @@ namespace Statistics
 				}
 				catch (Exception ex)
 				{
-					Log.Error(ex.ToString());
+					TShock.Log.Error(ex.ToString());
 				}
 			}
 			return false;
@@ -61,13 +61,9 @@ namespace Statistics
 			args.Data.ReadByte();
 			var damage = args.Data.ReadInt16();
 			var crit = args.Data.ReadBoolean();
-			var player = TShock.Players.First(p => p != null && p.Index == index);
+			var player = TShock.Players.First(p => p != null && p.IsLoggedIn && p.Index == index);
 
 			if (player == null)
-				return false;
-
-			//Don't handle stuff for players who aren't logged in.
-			if (!player.IsLoggedIn)
 				return false;
 
 			if (Main.npc[npcId].target < 255)
@@ -80,7 +76,7 @@ namespace Statistics
 				if (hitDamage > Main.npc[npcId].life && Main.npc[npcId].active && Main.npc[npcId].life > 0)
 				{
 					//not a boss kill
-					if (!Main.npc[npcId].boss)
+					if (!Main.npc[npcId].boss && !Main.npc[npcId].friendly)
 					{
 						Statistics.database.UpdateKills(player.UserID, KillType.Mob);
 						Statistics.SentDamageCache[player.Index][KillType.Mob] += Main.npc[npcId].life;
@@ -122,7 +118,7 @@ namespace Statistics
 			args.Data.ReadByte();
 			args.Data.ReadInt16();
 			var pvp = args.Data.ReadBoolean();
-			var player = TShock.Players.First(p => p != null && p.Index == index);
+			var player = TShock.Players.First(p => p != null && p.IsLoggedIn && p.Index == index);
 
 			if (player == null)
 				return false;
@@ -142,15 +138,11 @@ namespace Statistics
 				Statistics.PlayerKilling[player] = null;
 			}
 
-			//Only update killed if the killed is logged in
-			if (player.IsLoggedIn)
-			{
-				Statistics.database.UpdateDeaths(player.UserID);
-				Statistics.database.UpdatePlayerDamageGiven(player.UserID, player.Index);
-				//update all received damage on death
-				Statistics.database.UpdateDamageReceived(player.UserID, player.Index);
-				Statistics.database.UpdateHighScores(player.UserID);
-			}
+			Statistics.database.UpdateDeaths(player.UserID);
+			Statistics.database.UpdatePlayerDamageGiven(player.UserID, player.Index);
+			//update all received damage on death
+			Statistics.database.UpdateDamageReceived(player.UserID, player.Index);
+			Statistics.database.UpdateHighScores(player.UserID);
 
 			return false;
 		}
@@ -163,7 +155,7 @@ namespace Statistics
 			args.Data.ReadByte();
 			var damage = args.Data.ReadInt16();
 			//player being attacked
-			var player = TShock.Players.First(p => p != null && p.Index == index);
+			var player = TShock.Players.First(p => p != null && p.IsLoggedIn && p.Index == index);
 
 			if (player == null)
 				return false;

@@ -12,7 +12,7 @@ using TShockAPI.Hooks;
 
 namespace Statistics
 {
-	[ApiVersion(1, 16)]
+	[ApiVersion(1, 17)]
 	public class Statistics : TerrariaPlugin
 	{
 		internal static Database tshock;
@@ -188,7 +188,7 @@ namespace Statistics
 				}
 				catch (Exception ex)
 				{
-					Log.ConsoleError(ex.ToString());
+					TShock.Log.ConsoleError(ex.ToString());
 				}
 			}
 		}
@@ -229,7 +229,7 @@ namespace Statistics
 
 			if (sb.Length == 0)
 			{
-				Log.ConsoleInfo("Timespan error. Possible time check of an unplayed account.");
+				TShock.Log.ConsoleInfo("Timespan error. Possible time check of an unplayed account.");
 				return "an unknown period of time";
 			}
 			return sb.ToString();
