@@ -1,0 +1,68 @@
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+# =========================
+# Operating System Files
+# =========================
+
+# OSX
+# =========================
+OBJ
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+ResourceList/bin/Debug/Mono.Data.Sqlite.dll
+ResourceList/bin/Debug/MySql.Data.dll
+ResourceList/bin/Debug/Newtonsoft.Json.dll
+ResourceList/bin/Debug/MySql.Web.dll
+ResourceList/bin/Debug/TerrariaServer.exe
+ResourceList/bin/Debug/TShockAPI.dll
+ResourceList/DLLS/MySql.Data.dll
+ResourceList/DLLS/MySql.Web.dll
+ResourceList/DLLS/Newtonsoft.Json.dll
+ResourceList/DLLS/Mono.Data.Sqlite.dll
+ResourceList/DLLS/TerrariaServer.exe
+ResourceList/DLLS/TShockAPI.dll
+*.cache
+ResourceList/obj/Debug/ResourceList.csproj.FileListAbsolute.txt
+ResourceList/obj/Debug/ResourceList.dll
+ResourceList/obj/Debug/ResourceList.pdb
+ResourceList/obj/Debug/ResourceManager.csproj.FileListAbsolute.txt
+PlayersOnline/DLLS/HttpServer.dll
+PlayersOnline/DLLS/MySql.Data.dll
+PlayersOnline/DLLS/Mono.Data.Sqlite.dll
+PlayersOnline/DLLS/MySql.Web.dll
+PlayersOnline/DLLS/sqlite3.dll
+PlayersOnline/DLLS/TShockAPI.dll
+PlayersOnline/DLLS/TerrariaServer.exe
+PlayersOnline/DLLS/Newtonsoft.Json.dll

@@ -58,7 +58,7 @@ namespace Statistics
 					? (IQueryBuilder) new SqliteQueryCreator()
 					: new MysqlQueryCreator());
 
-			creator.EnsureExists(table);
+            creator.EnsureTableStructure(table);
 		}
 
 		internal void EnsureExists(params SqlTable[] tables)
@@ -281,7 +281,7 @@ namespace Statistics
 				}
 				catch (MySqlException x)
 				{
-					Log.Error(x.ToString());
+					TShock.Log.Error(x.ToString());
 					throw new Exception("MySQL not setup correctly.");
 				}
 			}

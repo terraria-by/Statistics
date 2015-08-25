@@ -25,7 +25,7 @@ namespace Statistics
 				{
 					if (args.Parameters.Count < 2)
 					{
-						var kills = Statistics.database.GetKills(args.Player.UserID);
+						var kills = Statistics.database.GetKills(args.Player.User.ID);
 						if (kills == null)
 							args.Player.SendErrorMessage("Unable to discover your killcount. Sorry.");
 						else
@@ -63,7 +63,7 @@ namespace Statistics
 					var logins = 1;
 					if (args.Parameters.Count < 2)
 					{
-						var times = Statistics.database.GetTimes(args.Player.UserID, ref logins);
+						var times = Statistics.database.GetTimes(args.Player.User.ID, ref logins);
 						if (times == null)
 							args.Player.SendErrorMessage("Unable to discover your times. Sorry.");
 						else
@@ -168,7 +168,7 @@ namespace Statistics
 				{
 					if (args.Parameters.Count < 2)
 					{
-						var damages = Statistics.database.GetDamage(args.Player.UserID);
+						var damages = Statistics.database.GetDamage(args.Player.User.ID);
 						if (damages == null)
 						{
 							args.Player.SendErrorMessage("Unable to discover your damage statistics. Sorry.");
