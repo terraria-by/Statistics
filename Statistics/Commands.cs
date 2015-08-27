@@ -268,7 +268,7 @@ namespace Statistics
                 case "-seen":
                     {
                         if (args.Parameters.Count < 2)
-                            args.Player.SendErrorMessage("Invalid syntax. /info -s [player name]");
+                            args.Player.SendErrorMessage("Invalid syntax. /stats -s [player name]");
                         else
                         {
                             var name = args.Parameters[1];
@@ -308,7 +308,7 @@ namespace Statistics
 
                         HsPagination.SendPage(args.Player, page, highscores, new HsPagination.FormatSettings
                         {
-                            FooterFormat = "use /info -hs {0} for more high scores",
+                            FooterFormat = "use /stats -hs {0} for more high scores",
                             FooterTextColor = Color.Lime,
                             HeaderFormat = "High Scores- Page {0} of {1}",
                             HeaderTextColor = Color.Lime,
