@@ -74,7 +74,7 @@ namespace Statistics
 			_counter.Start();
 			_timeSaver.Elapsed += TimeSaverOnElapsed;
 			_timeSaver.Start();
-
+            
 			TShockAPI.Commands.ChatCommands.Add(new Command("statistics.root", Commands.Core, "stats"));
 		}
 
