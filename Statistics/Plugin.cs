@@ -30,6 +30,8 @@ namespace Statistics
 		private readonly Timer _counter = new Timer(1000);
 		private readonly Timer _timeSaver = new Timer(60*1000*5);
 
+
+
 		public override string Author
 		{
 			get { return "Grandpa-G"; }     //Forked from WhiteXZ with permission
@@ -62,6 +64,7 @@ namespace Statistics
 			ServerApi.Hooks.NetGreetPlayer.Register(this, GreetPlayer);
 			ServerApi.Hooks.ServerLeave.Register(this, PlayerLeave);
 			ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
+            ServerApi.Hooks.GamePostInitialize.Register(this, OnGameInitialize);
 
 			PlayerHooks.PlayerPostLogin += PlayerPostLogin;
 
@@ -72,13 +75,22 @@ namespace Statistics
 			_timeSaver.Elapsed += TimeSaverOnElapsed;
 			_timeSaver.Start();
 
-
-			TShockAPI.Commands.ChatCommands.Add(new Command("statistics.root", Commands.Core, "info"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("statistics.root", Commands.Core, "stats"));
 		}
 
+        private void OnGameInitialize(EventArgs args)
+        {
+            var path = Path.Combine(TShock.SavePath, "StatsAnnouncements.json");
+            (Announcements.config = Config.Read(path)).Write(path);
+ 
+            Announcements.loadConfig();
+
+            Announcements.setupAnnouncements();
+        }
+
 		private void OnInitialize(EventArgs args)
-		{
-			database = Database.InitDb("Statistics");
+		{       
+            database = Database.InitDb("Statistics");
 			tshock = Database.InitDb("tshock");
 
 			var table = new SqlTable("Statistics",
@@ -101,9 +113,13 @@ namespace Statistics
 				new SqlColumn("Score", MySqlDbType.Int32));
 
 			database.EnsureExists(table, table2);
-
-			//database.Import();
+ 
 		}
+
+        private void OnReload(ReloadEventArgs args)
+        {
+            Announcements.loadConfig();
+        }
 
 		private static void TimeSaverOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
 		{

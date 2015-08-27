@@ -64,10 +64,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Announcements.cs" />
     <Compile Include="Commands.cs" />
+    <Compile Include="Config.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="DataHandler.cs" />
     <Compile Include="HsPagination.cs" />
+    <Compile Include="Overlay.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

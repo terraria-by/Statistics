@@ -78,23 +78,23 @@ namespace Statistics
 					//not a boss kill
 					if (!Main.npc[npcId].boss && !Main.npc[npcId].friendly)
 					{
-						Statistics.database.UpdateKills(player.UserID, KillType.Mob);
+						Statistics.database.UpdateKills(player.User.ID, KillType.Mob);
 						Statistics.SentDamageCache[player.Index][KillType.Mob] += Main.npc[npcId].life;
 						//Push damage to database on kill
-						Statistics.database.UpdateMobDamageGiven(player.UserID, player.Index);
+						Statistics.database.UpdateMobDamageGiven(player.User.ID, player.Index);
 					}
 					//a boss kill
 					else
 					{
-						Statistics.database.UpdateKills(player.UserID, KillType.Boss);
+						Statistics.database.UpdateKills(player.User.ID, KillType.Boss);
 						Statistics.SentDamageCache[player.Index][KillType.Boss] += Main.npc[npcId].life;
-						Statistics.database.UpdateBossDamageGiven(player.UserID, player.Index);
+						Statistics.database.UpdateBossDamageGiven(player.User.ID, player.Index);
 					}
 
 					//Push player damage dealt and damage received as well
-					Statistics.database.UpdatePlayerDamageGiven(player.UserID, player.Index);
-					Statistics.database.UpdateDamageReceived(player.UserID, player.Index);
-					Statistics.database.UpdateHighScores(player.UserID);
+					Statistics.database.UpdatePlayerDamageGiven(player.User.ID, player.Index);
+					Statistics.database.UpdateDamageReceived(player.User.ID, player.Index);
+					Statistics.database.UpdateHighScores(player.User.ID);
 				}
 				else
 				{
@@ -128,21 +128,21 @@ namespace Statistics
 				//Only update killer if the killer is logged in
 				if (Statistics.PlayerKilling[player].IsLoggedIn && pvp)
 				{
-					Statistics.database.UpdateKills(Statistics.PlayerKilling[player].UserID, KillType.Player);
-					Statistics.database.UpdateHighScores(Statistics.PlayerKilling[player].UserID);
-					Statistics.database.UpdatePlayerDamageGiven(Statistics.PlayerKilling[player].UserID,
+					Statistics.database.UpdateKills(Statistics.PlayerKilling[player].User.ID, KillType.Player);
+					Statistics.database.UpdateHighScores(Statistics.PlayerKilling[player].User.ID);
+					Statistics.database.UpdatePlayerDamageGiven(Statistics.PlayerKilling[player].User.ID,
 						Statistics.PlayerKilling[player].Index);
-					Statistics.database.UpdateDamageReceived(Statistics.PlayerKilling[player].UserID,
+					Statistics.database.UpdateDamageReceived(Statistics.PlayerKilling[player].User.ID,
 						Statistics.PlayerKilling[player].Index);
 				}
 				Statistics.PlayerKilling[player] = null;
 			}
 
-			Statistics.database.UpdateDeaths(player.UserID);
-			Statistics.database.UpdatePlayerDamageGiven(player.UserID, player.Index);
+			Statistics.database.UpdateDeaths(player.User.ID);
+			Statistics.database.UpdatePlayerDamageGiven(player.User.ID, player.Index);
 			//update all received damage on death
-			Statistics.database.UpdateDamageReceived(player.UserID, player.Index);
-			Statistics.database.UpdateHighScores(player.UserID);
+			Statistics.database.UpdateDamageReceived(player.User.ID, player.Index);
+			Statistics.database.UpdateHighScores(player.User.ID);
 
 			return false;
 		}
