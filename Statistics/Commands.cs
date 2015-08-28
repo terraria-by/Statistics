@@ -26,6 +26,10 @@ namespace Statistics
 
             switch (args.Parameters[0].ToLowerInvariant())
             {
+                case "-kl":
+                    KillingSpree.SendKillingNotice(Int32.Parse(args.Parameters[1]));
+                    break;
+
                 case "-o":
                 case "-options":
 

@@ -34,9 +34,9 @@ namespace Statistics
                 SendNotice("BossKills", " 5 Top Boss kills: ", config.KillsColor);
                 SendNotice("PlayerKills", " 5 Top Player kills: ", config.KillsColor);
 
-                SendNotice("MobKills", " 5 Top Mob kills: ", config.KillsColor);
-                SendNotice("BossKills", " 5 Top Boss kills: ", config.KillsColor);
-                SendNotice("PlayerKills", " 5 Top Player kills: ", config.KillsColor);
+                SendNotice("MobDamageGiven", " 5 Top Mob Damage Given: ", config.DamageColor);
+                SendNotice("BossDamageGiven", " 5 Top Boss Damage Given: ", config.DamageColor);
+                SendNotice("PlayerDamageGiven", " 5 Top Player Damage Given: ", config.DamageColor);
 
                 SendNotice("Deaths", " 5 Top Deaths: ", config.DeathsColor);
                 SendNotice("DamageReceived", " 5 Top Damage Received: ", config.DeathsColor);

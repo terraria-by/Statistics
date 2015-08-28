@@ -29,6 +29,11 @@ namespace Statistics
         public bool showDamage = true;
         public bool showDeaths = true;
 
+        public bool KillingSpree = true;
+        public int[] KillingSpreeThreshold = {10, 20, 50, 75, 100};
+        public string[] KillingSpreeMessage = { "Player is on a killing spree!", "Player is on an ultra kill spree!", "Player is on an ultimate killing spree!", "Monster Player killing everything!", "Unbelieveable Player, kills everything!" };
+        public int[] KillingSpreeColor = { 0, 255, 0 };  // Green
+
         public bool tellConsole = true;
         public ConsoleColor consoleColor = ConsoleColor.White;  // 15
         public bool showTimeStamp = false;

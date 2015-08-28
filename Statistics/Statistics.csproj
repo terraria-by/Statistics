@@ -70,6 +70,7 @@
     <Compile Include="Database.cs" />
     <Compile Include="DataHandler.cs" />
     <Compile Include="HsPagination.cs" />
+    <Compile Include="KillingSpree.cs" />
     <Compile Include="Overlay.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

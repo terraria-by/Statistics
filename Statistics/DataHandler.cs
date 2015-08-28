@@ -71,7 +71,9 @@ namespace Statistics
 				var critical = 1;
 				if (crit)
 					critical = 2;
-				var hitDamage = (damage - Main.npc[npcId].defense/2)*critical;
+
+				
+                var hitDamage = (damage - Main.npc[npcId].defense/2)*critical;
 
 				if (hitDamage > Main.npc[npcId].life && Main.npc[npcId].active && Main.npc[npcId].life > 0)
 				{
