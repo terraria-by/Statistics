@@ -12,13 +12,21 @@ namespace Statistics
 {
     public static class Announcements
     {
-        public static Config config = new Config();
-        public static string configPath = Path.Combine(TShock.SavePath, "StatsAnnouncements.json");
+        public static Config config = Statistics.config;
 
         private static readonly Timer KillstoNotify = new Timer(1000);
         private static readonly Timer DamagetoNotify = new Timer(1000);
         private static readonly Timer DeathstoNotify = new Timer(1000);
 
+        static Announcements()
+        {
+            KillstoNotify.Elapsed += notifyKillsOnElapsed;
+            KillstoNotify.AutoReset = true;
+            DamagetoNotify.Elapsed += notifyDamageOnElapsed;
+            DamagetoNotify.AutoReset = true;
+            DeathstoNotify.Elapsed += notifyDeathsOnElapsed;
+            DeathstoNotify.AutoReset = true;
+        }
         public static void SendNoticeAll(string statType)
         {
             if (statType.Length == 0)
@@ -72,12 +80,8 @@ namespace Statistics
             Console.ResetColor();
 
         }
-        public static void loadConfig()
-        {
-            (config = Config.Read(configPath)).Write(configPath);
-        }
 
-        public static void closeAnnouncements()
+        public static void stopAnnouncements()
         {
             KillstoNotify.Stop();
             DamagetoNotify.Stop();
@@ -86,13 +90,13 @@ namespace Statistics
 
         public static void setupAnnouncements()
         {
+            config = Statistics.config;
             if (config.isActive)
             {
                 if (config.showKills)
                 {
+                    KillstoNotify.Stop();
                     KillstoNotify.Interval = (config.KillstimeOffset) * 60 * 1000;
-                    KillstoNotify.Elapsed += notifyKillsOnElapsed;
-                    KillstoNotify.AutoReset = true;
                     KillstoNotify.Start();
 
                     if (config.tellConsole)
@@ -111,9 +115,8 @@ namespace Statistics
 
                 if (config.showDamage)
                 {
+                    DamagetoNotify.Stop();
                     DamagetoNotify.Interval = config.DamagetimeInterval * 60 * 1000;
-                    DamagetoNotify.Elapsed += notifyDamageOnElapsed;
-                    DamagetoNotify.AutoReset = true;
                     DamagetoNotify.Start();
 
                     if (config.tellConsole)
@@ -131,9 +134,8 @@ namespace Statistics
                 }
                 if (config.showDeaths)
                 {
+                    DeathstoNotify.Stop();
                     DeathstoNotify.Interval = config.DeathstimeInterval * 60 * 1000;
-                    DeathstoNotify.Elapsed += notifyDeathsOnElapsed;
-                    DeathstoNotify.AutoReset = true;
                     DeathstoNotify.Start();
 
                     if (config.tellConsole)

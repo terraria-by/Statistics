@@ -30,6 +30,9 @@ namespace Statistics
 		private readonly Timer _counter = new Timer(1000);
 		private readonly Timer _timeSaver = new Timer(60*1000*5);
 
+//        public static Config config = new Config();
+        public static Config config { get; set; }
+        public static string configPath = Path.Combine(TShock.SavePath, "StatsAnnouncements.json");
 
 
 		public override string Author
@@ -80,15 +83,11 @@ namespace Statistics
 
         private void OnGameInitialize(EventArgs args)
         {
-            var path = Path.Combine(TShock.SavePath, "StatsAnnouncements.json");
-            (Announcements.config = Config.Read(path)).Write(path);
- 
-            Announcements.loadConfig();
-
+            config = Config.loadConfig(configPath);
             Announcements.setupAnnouncements();
         }
 
-		private void OnInitialize(EventArgs args)
+		public static void OnInitialize(EventArgs args)
 		{       
             database = Database.InitDb("Statistics");
 			tshock = Database.InitDb("tshock");
@@ -112,13 +111,24 @@ namespace Statistics
 				new SqlColumn("UserID", MySqlDbType.Int32) {Unique = true},
 				new SqlColumn("Score", MySqlDbType.Int32));
 
-			database.EnsureExists(table, table2);
+            var table3 = new SqlTable("KillingSpree",
+                new SqlColumn("ID", MySqlDbType.Int32) { Unique = true, Primary = true, AutoIncrement = true },
+                new SqlColumn("UserID", MySqlDbType.Int32),
+               new SqlColumn("StartSpree", MySqlDbType.Text),
+                new SqlColumn("Deleted", MySqlDbType.Int32),
+                new SqlColumn("Player", MySqlDbType.Int32),
+                new SqlColumn("Mob", MySqlDbType.Int32),
+                new SqlColumn("Boss", MySqlDbType.Int32),
+                new SqlColumn("Combined", MySqlDbType.Int32));
+            
+            database.EnsureExists(table, table2);
+            database.EnsureExists(table3);
  
 		}
 
         private void OnReload(ReloadEventArgs args)
         {
-            Announcements.loadConfig();
+            config = Config.loadConfig(configPath);
         }
 
 		private static void TimeSaverOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
@@ -141,6 +151,7 @@ namespace Statistics
 		private static void PlayerPostLogin(PlayerPostLoginEventArgs args)
 		{
 			database.CheckUpdateInclude(args.Player.User.ID);
+            database.UpdateKillingSpree(args.Player.User.ID, 0, 0, 0);
 		}
 
 		private static void GreetPlayer(GreetPlayerEventArgs args)

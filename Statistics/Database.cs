@@ -41,6 +41,59 @@ namespace Statistics
             }
         }
 
+        internal void UpdateKillingSpree(int userId, int Mob, int Boss, int Player)
+        {
+            var update = false;
+            Query("DELETE from KillingSpree WHERE UserID = @0 and Deleted=1 and (Player+Mob+Boss) = 0", userId);
+            using (var reader = QueryReader("SELECT UserID FROM KillingSpree WHERE UserID = @0 and Deleted = 0", userId))
+            {
+                if (reader.Read())
+                    update = true;
+            }
+            if (update)
+                Query("UPDATE KillingSpree SET Player=Player+@1, Mob=Mob+@2, Boss=Boss+@3, Combined=Combined+@4 WHERE UserID = @0 and Deleted = 0", userId, Player, Mob, Boss, Player + Mob + Boss);
+            else
+            {
+                Query("INSERT INTO KillingSpree (UserID, StartSpree, Deleted, Player, Mob, Boss, Combined) " +
+                    "VALUES (@0, @1, @2, @3, @4, @5, @6)", userId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), 0, Player, Mob, Boss, Player + Mob + Boss);
+            }
+        }
+
+        internal int[] GetKills(int userId)
+        {
+            using (
+                var reader =
+                    QueryReader("SELECT Mob, Boss, Player, Combined FROM KillingSpree WHERE UserID = @0 and Deleted=0", userId))
+                                {
+                if (reader.Read())
+                {
+                    return new[]
+					{
+						reader.Get<int>("Mob"), reader.Get<int>("Boss"), reader.Get<int>("Player"), reader.Get<int>("Combined")
+					};
+                }
+            }
+            return null;
+        }
+
+        internal void CloseKillingSpree(int userId)
+        {
+            Query("UPDATE KillingSpree SET Deleted=1 WHERE UserID = @0", userId);
+            Query("DELETE from KillingSpree WHERE UserID = @0 and Deleted=1 and (Player+Mob+Boss) = 0", userId);
+            Query("INSERT INTO KillingSpree (UserID, StartSpree, Deleted, Player, Mob, Boss, Combined) VALUES (@0, @1, 0, 0, 0, 0, 0)", userId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+
+        }
+
+        internal void dropTables()
+        {
+            var query = string.Format("drop table Statistics ");
+            //            Query(query);
+            query = string.Format("drop table Highscores ");
+            //            Query(query);
+            query = string.Format("drop table KillingSpree ");
+            Query(query);
+
+        }
         internal int CountAllPlayers()
         {
             var query = "";
@@ -94,11 +147,40 @@ namespace Statistics
             return ret;
         }
 
+        internal int[] GetCurrentKills(int userId)
+        {
+            var query = "";
+                query = string.Format("SELECT UserID, PlayerKills, Deaths, MobKills, BossKills, Logins, Time, MobDamageGiven, BossDamageGiven, PlayerDamageGiven, DamageReceived FROM Statistics WHERE UserID = {0}", userId);
+
+            using (var reader = QueryReader(query))
+            {
+                if (reader.Read())
+                {
+                    int[] stats = new[]
+					{
+						reader.Get<int>("UserID"),
+						reader.Get<int>("Logins"),
+						reader.Get<int>("Time"),
+						reader.Get<int>("Deaths"),
+						reader.Get<int>("PlayerKills"),
+						reader.Get<int>("MobKills"),
+						reader.Get<int>("BossKills"),
+						reader.Get<int>("MobDamageGiven"),
+						reader.Get<int>("BossDamageGiven"),
+						reader.Get<int>("PlayerDamageGiven"),
+						reader.Get<int>("DamageReceived")
+					};
+                    return stats;
+                }
+            }
+            return null;
+        }
+
         internal List<KeyValuePair<string, int>> GetHighPlayers(string sortBy)
         {
             var ret = new Dictionary<string, int[]>();
             List<KeyValuePair<string, int>> items = new List<KeyValuePair<string, int>>();
-    
+
             var query = "";
 
             query = string.Format("SELECT UserID, PlayerKills, Deaths, MobKills, BossKills, Logins, Time, MobDamageGiven, BossDamageGiven, PlayerDamageGiven, DamageReceived FROM Statistics order by {0} desc LIMIT 5", sortBy);
@@ -110,7 +192,7 @@ namespace Statistics
                     var user = TShock.Users.GetUserByID(reader.Get<int>("UserID"));
                     if (user == null) continue;
                     items.Add(new KeyValuePair<string, int>(user.Name, reader.Get<int>(sortBy)));
-                 }
+                }
             }
             return items;
         }
@@ -226,25 +308,6 @@ namespace Statistics
 						reader.Get<int>("BossDamageGiven"),
 						reader.Get<int>("PlayerDamageGiven"),
 						reader.Get<int>("DamageReceived")
-					};
-                }
-            }
-            return null;
-        }
-
-        internal int[] GetKills(int userId)
-        {
-            using (
-                var reader =
-                    QueryReader("SELECT PlayerKills, MobKills, BossKills, Deaths FROM Statistics WHERE UserID = @0",
-                        userId))
-            {
-                if (reader.Read())
-                {
-                    return new[]
-					{
-						reader.Get<int>("PlayerKills"), reader.Get<int>("MobKills"), reader.Get<int>("BossKills"),
-						reader.Get<int>("Deaths")
 					};
                 }
             }

@@ -80,16 +80,20 @@ namespace Statistics
 					//not a boss kill
 					if (!Main.npc[npcId].boss && !Main.npc[npcId].friendly)
 					{
+                        Statistics.database.UpdateKillingSpree(player.User.ID, 1, 0, 0);
 						Statistics.database.UpdateKills(player.User.ID, KillType.Mob);
-						Statistics.SentDamageCache[player.Index][KillType.Mob] += Main.npc[npcId].life;
+                        KillingSpree.SendKillingNotice(player.Name, player.User.ID); 
+                        Statistics.SentDamageCache[player.Index][KillType.Mob] += Main.npc[npcId].life;
 						//Push damage to database on kill
 						Statistics.database.UpdateMobDamageGiven(player.User.ID, player.Index);
 					}
 					//a boss kill
 					else
 					{
-						Statistics.database.UpdateKills(player.User.ID, KillType.Boss);
-						Statistics.SentDamageCache[player.Index][KillType.Boss] += Main.npc[npcId].life;
+                        Statistics.database.UpdateKillingSpree(player.User.ID, 0, 1, 0);
+                        Statistics.database.UpdateKills(player.User.ID, KillType.Boss);
+                        KillingSpree.SendKillingNotice(player.Name, player.User.ID); 
+                        Statistics.SentDamageCache[player.Index][KillType.Boss] += Main.npc[npcId].life;
 						Statistics.database.UpdateBossDamageGiven(player.User.ID, player.Index);
 					}
 
@@ -125,20 +129,26 @@ namespace Statistics
 			if (player == null)
 				return false;
 
-			if (Statistics.PlayerKilling[player] != null)
+            if (player.Name == null)
+                return false;
+
+//            Console.WriteLine("player  " + player.User.ID);
+            if (Statistics.PlayerKilling[player] != null)
 			{
 				//Only update killer if the killer is logged in
 				if (Statistics.PlayerKilling[player].IsLoggedIn && pvp)
 				{
-					Statistics.database.UpdateKills(Statistics.PlayerKilling[player].User.ID, KillType.Player);
-					Statistics.database.UpdateHighScores(Statistics.PlayerKilling[player].User.ID);
+                    Statistics.database.UpdateKillingSpree(Statistics.PlayerKilling[player].User.ID, 0, 0, 1);
+                    Statistics.database.UpdateKills(Statistics.PlayerKilling[player].User.ID, KillType.Player);
+                    KillingSpree.SendKillingNotice(player.Name, player.User.ID); 
+                    Statistics.database.UpdateHighScores(Statistics.PlayerKilling[player].User.ID);
 					Statistics.database.UpdatePlayerDamageGiven(Statistics.PlayerKilling[player].User.ID,
 						Statistics.PlayerKilling[player].Index);
 					Statistics.database.UpdateDamageReceived(Statistics.PlayerKilling[player].User.ID,
 						Statistics.PlayerKilling[player].Index);
 				}
 				Statistics.PlayerKilling[player] = null;
-			}
+ 			}
 
 			Statistics.database.UpdateDeaths(player.User.ID);
 			Statistics.database.UpdatePlayerDamageGiven(player.User.ID, player.Index);
@@ -146,6 +156,7 @@ namespace Statistics
 			Statistics.database.UpdateDamageReceived(player.User.ID, player.Index);
 			Statistics.database.UpdateHighScores(player.User.ID);
 
+            Statistics.database.CloseKillingSpree(player.User.ID);
 			return false;
 		}
 

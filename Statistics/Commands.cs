@@ -3,16 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using TShockAPI;
 using TShockAPI.DB;
+using System.IO;
 
 namespace Statistics
 {
     public static class Commands
     {
         public static TShockAPI.TSPlayer player;
-        public static Config config = new Config();
+        public static Config config = Statistics.config;
 
         public static void Core(CommandArgs args)
         {
+            config = Statistics.config;
             player = args.Player;
             string[] statList = { "MobKills", "BossKills", "PlayerKills" };
 
@@ -27,9 +29,28 @@ namespace Statistics
             switch (args.Parameters[0].ToLowerInvariant())
             {
                 case "-kl":
-                    KillingSpree.SendKillingNotice(Int32.Parse(args.Parameters[1]));
+                    var playerData = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
+                    var userName = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
+                    KillingSpree.SendKillingNotice(playerData.Name, Int32.Parse(args.Parameters[1]));
                     break;
-
+                case "-km":
+                    playerData = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
+                    Statistics.database.UpdateKillingSpree(Int32.Parse(args.Parameters[1]), 1, 0, 0);
+                    KillingSpree.SendKillingNotice(playerData.Name, Int32.Parse(args.Parameters[1]));
+                    break;
+                case "-kb":
+                    playerData = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
+                    Statistics.database.UpdateKillingSpree(Int32.Parse(args.Parameters[1]), 0, 1, 0);
+                    KillingSpree.SendKillingNotice(playerData.Name, Int32.Parse(args.Parameters[1]));
+                    break;
+                case "-kp":
+                    playerData = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
+                    Statistics.database.UpdateKillingSpree(Int32.Parse(args.Parameters[1]), 0, 0, 1);
+                    KillingSpree.SendKillingNotice(playerData.Name, Int32.Parse(args.Parameters[1]));
+                    break;
+                case "-kd":
+                    Statistics.database.CloseKillingSpree(Int32.Parse(args.Parameters[1]));
+                    break;
                 case "-o":
                 case "-options":
 
@@ -46,8 +67,8 @@ namespace Statistics
 
                     Announcements.ConsoleSendMessage(string.Format(" DamagetimeInterval {0}", config.DamagetimeInterval));
                     Announcements.ConsoleSendMessage(string.Format(" showDamageKills {0}", config.showDamage));
-                   Announcements.ConsoleSendMessage(string.Format(" DamagetimeOffset {0}", config.DamagetimeOffset));
-                   Announcements.ConsoleSendMessage(string.Format(" DamageColor {0}", string.Join(",", config.DamageColor)));
+                    Announcements.ConsoleSendMessage(string.Format(" DamagetimeOffset {0}", config.DamagetimeOffset));
+                    Announcements.ConsoleSendMessage(string.Format(" DamageColor {0}", string.Join(",", config.DamageColor)));
 
                     Announcements.ConsoleSendMessage(string.Format(" DeathstimeInterval {0}", config.DeathstimeInterval));
                     Announcements.ConsoleSendMessage(string.Format(" showDeathsKills {0}", config.showDeaths));
@@ -58,11 +79,23 @@ namespace Statistics
 
                 case "-r":
                 case "-reload":
-                    Announcements.loadConfig();
+                    Statistics.config = Config.loadConfig(Statistics.configPath);
+                    Announcements.stopAnnouncements();
                     Announcements.setupAnnouncements();
-                    Announcements.closeAnnouncements();
                     Announcements.ConsoleSendMessage(string.Format(" Announcements config reloaded"));
 
+                    break;
+
+                case "-stop":
+                    Statistics.config.isActive = false;
+                    Announcements.stopAnnouncements();
+                    Announcements.ConsoleSendMessage(string.Format(" Announcements stopped"));
+
+                    break;
+
+                case "-init":
+                    Statistics.database.dropTables();
+                    Statistics.OnInitialize(null);
                     break;
 
                 case "-n":
@@ -136,64 +169,32 @@ namespace Statistics
                         }
                     }
                     break;
-                /*
-            case "-list":
-                {
-                    Dictionary<string, int[]> statsList = new Dictionary<string, int[]>();
-                    var page = 1;
-                    double Num;
-
-                    if (args.Parameters.Count < 2)
-                    {
-                        statsList = Statistics.database.GetAllPlayers(page, 0);
-                        page = 1;
-                    }
-                    else
-                    {
-                        bool isNum = double.TryParse(args.Parameters[1], out Num);
-                        if (isNum)
-                        {
-                            if (HsPagination.TryParsePageNumber(args.Parameters, 1, args.Player, out page))
-                                statsList = Statistics.database.GetAllPlayers(page, 0);
-                        }
-                        else
-                        {
-                            var user = TShock.Users.GetUsers().Find(u => u.Name.StartsWith(args.Parameters[1]));
-
-                            if (user == null)
-                                args.Player.SendErrorMessage("No users found matching the name '{0}'", args.Parameters[1]);
-                            else
-                                statsList = Statistics.database.GetAllPlayers(page, user.ID);
-                        }
-                    }
-
-                    StatsPagination.SendPage(args.Player, page, statsList, new StatsPagination.FormatSettings
-                       {
-                           FooterFormat = "use /stats -ls {0} for more stats",
-                           FooterTextColor = Color.Lime,
-                           HeaderFormat = "Statistics List - Page {0} of {1}",
-                           HeaderTextColor = Color.Lime,
-                           IncludeFooter = true,
-                           IncludeHeader = true,
-                           MaxLinesPerPage = 5,
-                           NothingToDisplayString = "No statistical data available"
-                       });
-                }
-                break;
-                */
-                case "-k":
-                case "-kills":
+                 case "-k":
+                 case "-kills":  
+                    /*
+                     * 						reader.Get<int>("UserID"),
+						reader.Get<int>("Logins"),
+						reader.Get<int>("Time"),
+						reader.Get<int>("Deaths"),
+						reader.Get<int>("PlayerKills"),
+						reader.Get<int>("MobKills"),
+						reader.Get<int>("BossKills"),
+						reader.Get<int>("MobDamageGiven"),
+						reader.Get<int>("BossDamageGiven"),
+						reader.Get<int>("PlayerDamageGiven"),
+						reader.Get<int>("DamageReceived")
+*/
                     {
                         if (args.Parameters.Count < 2)
                         {
-                            var kills = Statistics.database.GetKills(args.Player.User.ID);
+                            var kills = Statistics.database.GetCurrentKills(args.Player.User.ID);
                             if (kills == null)
                                 args.Player.SendErrorMessage("Unable to discover your killcount. Sorry.");
                             else
                                 args.Player.SendSuccessMessage(
                                     "You have killed {0} player{4}, {1} mob{5}, {2} boss{6} and died {3} time{7}",
-                                    kills[0], kills[1], kills[2], kills[3],
-                                    kills[0].Suffix(), kills[1].Suffix(), kills[2].Suffix(true), kills[3].Suffix());
+                                    kills[4], kills[5], kills[6], kills[3],
+                                    kills[4].Suffix(), kills[5].Suffix(), kills[6].Suffix(true), kills[3].Suffix());
                         }
                         else
                         {
@@ -203,7 +204,7 @@ namespace Statistics
                                 args.Player.SendErrorMessage("No users found matching the name '{0}'", name);
                             else
                             {
-                                var kills = Statistics.database.GetKills(user.ID);
+                                var kills = Statistics.database.GetCurrentKills(user.ID);
                                 if (kills == null)
                                     args.Player.SendErrorMessage("Unable to discover the killcount of {0}. Sorry.",
                                         user.Name);
@@ -211,8 +212,8 @@ namespace Statistics
                                 {
                                     args.Player.SendSuccessMessage(
                                         "{0} has killed {1} player{5}, {2} mob{6}, {3} boss{7} and died {4} time{8}",
-                                        user.Name, kills[0], kills[1], kills[2], kills[3],
-                                        kills[0].Suffix(), kills[1].Suffix(), kills[2].Suffix(true), kills[3].Suffix());
+                                        user.Name, kills[4], kills[5], kills[6], kills[3],
+                                        kills[4].Suffix(), kills[5].Suffix(), kills[6].Suffix(true), kills[3].Suffix());
                                 }
                             }
                         }

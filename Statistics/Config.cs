@@ -31,8 +31,9 @@ namespace Statistics
 
         public bool KillingSpree = true;
         public int[] KillingSpreeThreshold = {10, 20, 50, 75, 100};
-        public string[] KillingSpreeMessage = { "Player is on a killing spree!", "Player is on an ultra kill spree!", "Player is on an ultimate killing spree!", "Monster Player killing everything!", "Unbelieveable Player, kills everything!" };
+        public string[] KillingSpreeMessage = { "is on a killing spree!", "is on an ultra kill spree!", "is on an ultimate killing spree!", "is a Monster Player killing everything!", "is an Unbelievable Player, kills everything!" };
         public int[] KillingSpreeColor = { 0, 255, 0 };  // Green
+        public string KillingSpreeType = "Mob";
 
         public bool tellConsole = true;
         public ConsoleColor consoleColor = ConsoleColor.White;  // 15
@@ -56,6 +57,14 @@ Black The color black.
  Yellow The color yellow. 
  White The color white. 
 */
+        public static Config loadConfig(string configPath)
+        {
+            Config config = null;
+          (config = Read(configPath)).Write(configPath);
+            
+           return config;
+        }
+
         public void Write(string path)
         {
             File.WriteAllText(path, JsonConvert.SerializeObject(this, Formatting.Indented));
