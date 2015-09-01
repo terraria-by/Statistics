@@ -34,7 +34,12 @@ namespace Statistics
 
         public bool KillingSpree = true;
         public int[] KillingSpreeThreshold = {10, 20, 50, 75, 100};
-        public string[] KillingSpreeMessage = { "is on a killing spree!", "is on an ultra kill spree!", "is on an ultimate killing spree!", "is a Monster Player killing everything!", "is an Unbelievable Player, kills everything!" };
+        public string[] KillingSpreeMessage = {"is on a killing spree!",
+ "is on an ultra killing spree!",
+ "is on an ultimate killing spree!",
+ "is a Monster! They're killing everything!",
+ "is an Unbelievable Player, they're unstoppable!"
+ };
         public int[] KillingSpreeColor = { 0, 255, 0 };  // Green
         public string KillingSpreeType = "Mob";
 

@@ -187,6 +187,11 @@ namespace Statistics
 
                 case "-r":
                 case "-reload":
+                    if (args.Player.RealPlayer)
+                    {
+                        args.Player.SendErrorMessage("Invalid stats option");
+                        return;
+                    }
                     Statistics.config = Config.loadConfig(Statistics.configPath);
                     Announcements.stopAnnouncements();
                     Announcements.setupAnnouncements();
@@ -268,10 +273,10 @@ namespace Statistics
                             TimeSpan ts = new TimeSpan(0, 0, 0, stats[2]);
                             var total = ts.Add(new TimeSpan(0, 0, 0, Statistics.TimeCache[stats[0]]));
                             if (!args.Player.RealPlayer)
-                                args.Player.SendInfoMessage(" {0}, player died {1} kills: player {4} mob {5} boss {6} - damage: mob {7} boss {8} player {9} received {10} on for {2} logins {3}",
+                                args.Player.SendInfoMessage(" {0}, died {1} kills: player {4} mob {5} boss {6} - damage: mob {7} boss {8} player {9} received {10} on for {2} logins {3}",
         statsName, stats[1], total.SToString(), stats[3], stats[4], stats[5], stats[6], stats[7], stats[8], stats[9], stats[10]);
                             else
-                                args.Player.SendMessage(string.Format(" {0}, player died {1} kills: player {4} mob {5} boss {6} - damage: mob {7} boss {8} player {9} received {10} on for {2} logins {3}",
+                                args.Player.SendMessage(string.Format(" {0}, died {1} kills: player {4} mob {5} boss {6} - damage: mob {7} boss {8} player {9} received {10} on for {2} logins {3}",
         statsName, stats[1], total.SToString(), stats[3], stats[4], stats[5], stats[6], stats[7], stats[8], stats[9], stats[10]), lineColor);
                         }
                     }

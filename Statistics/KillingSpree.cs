@@ -145,9 +145,11 @@ namespace Statistics
                 return;
             }
             double startSpree = (config.BlitzEventStart - date).TotalMilliseconds;
-            TSPlayer.All.SendMessage(string.Format(" Blitz Event will start at {0} for {1} seconds.", config.BlitzEventStart, config.BlitzEventLength), Convert.ToByte(config.KillingSpreeColor[0]), Convert.ToByte(config.KillingSpreeColor[1]), Convert.ToByte(config.KillingSpreeColor[2]));
+
+
+            TSPlayer.All.SendMessage(string.Format("A {1} blitz will start at {0}, good luck!", config.BlitzEventStart, config.BlitzEventLength), Convert.ToByte(config.KillingSpreeColor[0]), Convert.ToByte(config.KillingSpreeColor[1]), Convert.ToByte(config.KillingSpreeColor[2]));
             if (config.tellConsole)
-                Announcements.ConsoleSendMessage(string.Format(" Blitz Event will start at {0} for {1} seconds.", config.BlitzEventStart, config.BlitzEventLength));
+                Announcements.ConsoleSendMessage(string.Format(" A {1} blitz will start at {0}, good luck!", config.BlitzEventStart, config.BlitzEventLength));
 
             SpreeTimer.Stop();
             SpreeTimer.Interval = startSpree;    // in seconds
