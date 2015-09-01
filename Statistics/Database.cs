@@ -64,7 +64,7 @@ namespace Statistics
             using (
                 var reader =
                     QueryReader("SELECT Mob, Boss, Player, Combined FROM KillingSpree WHERE UserID = @0 and Deleted=0", userId))
-                                {
+            {
                 if (reader.Read())
                 {
                     return new[]
@@ -82,6 +82,28 @@ namespace Statistics
             Query("DELETE from KillingSpree WHERE UserID = @0 and Deleted=1 and (Player+Mob+Boss) = 0", userId);
             Query("INSERT INTO KillingSpree (UserID, StartSpree, Deleted, Player, Mob, Boss, Combined) VALUES (@0, @1, 0, 0, 0, 0, 0)", userId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
 
+        }
+
+        internal int[] PruneKillingSpree(int days)
+        {
+            var query = "";
+            int countBefore = 0;
+            int countAfter = 0;
+            query = string.Format("SELECT count(*) count from KillingSpree where StartSpree <= date('Now','" + -days + " days') and Deleted=1", days);
+
+            using (var reader = QueryReader(query))
+            {
+                if (reader.Read())
+                    countBefore = reader.Get<int>("count");
+            }
+            Query("DELETE from KillingSpree where StartSpree <= date('Now','" + days + " days') and Deleted=1");
+            using (var reader = QueryReader(query))
+            {
+                if (reader.Read())
+                    countAfter = reader.Get<int>("count");
+            }
+            int[] records = new int[] { countBefore, countAfter };
+            return records;
         }
 
         internal void dropTables()
@@ -150,7 +172,7 @@ namespace Statistics
         internal int[] GetCurrentKills(int userId)
         {
             var query = "";
-                query = string.Format("SELECT UserID, PlayerKills, Deaths, MobKills, BossKills, Logins, Time, MobDamageGiven, BossDamageGiven, PlayerDamageGiven, DamageReceived FROM Statistics WHERE UserID = {0}", userId);
+            query = string.Format("SELECT UserID, PlayerKills, Deaths, MobKills, BossKills, Logins, Time, MobDamageGiven, BossDamageGiven, PlayerDamageGiven, DamageReceived FROM Statistics WHERE UserID = {0}", userId);
 
             using (var reader = QueryReader(query))
             {

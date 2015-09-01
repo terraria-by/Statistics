@@ -77,9 +77,10 @@ namespace Statistics
 			_counter.Start();
 			_timeSaver.Elapsed += TimeSaverOnElapsed;
 			_timeSaver.Start();
-            
-			TShockAPI.Commands.ChatCommands.Add(new Command("statistics.root", Commands.Core, "stats"));
-		}
+
+            TShockAPI.Commands.ChatCommands.Add(new Command("statistics.root", Commands.Core, "stats") { AllowServer = true });
+            TShockAPI.Commands.ChatCommands.Add(new Command("statistics.blitzevent", Commands.BlitzMatch, "blitzevent", "be") { AllowServer = true });
+        }
 
         private void OnGameInitialize(EventArgs args)
         {
@@ -179,6 +180,7 @@ namespace Statistics
 		{
 			if (TShock.Players[args.Who] == null) return;
 
+            KillingSpree.ClearBlitzEvent(TShock.Players[args.Who].User.ID);
 			if (PlayerKilling.ContainsKey(TShock.Players[args.Who]))
 				PlayerKilling.Remove(TShock.Players[args.Who]);
 

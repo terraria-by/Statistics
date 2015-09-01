@@ -4,6 +4,8 @@ using System.Linq;
 using TShockAPI;
 using TShockAPI.DB;
 using System.IO;
+using System.Reflection;
+using System.Globalization;
 
 namespace Statistics
 {
@@ -11,6 +13,60 @@ namespace Statistics
     {
         public static TShockAPI.TSPlayer player;
         public static Config config = Statistics.config;
+        private static TimeSpan startSpree = new TimeSpan(0, 0, 0, 30);
+        public static void BlitzMatch(CommandArgs args)
+        {
+            config = Statistics.config;
+            player = args.Player;
+
+            if (args.Parameters.Count < 1)
+            {
+                if (DateTime.Now >= config.BlitzEventStart)
+                    config.BlitzEventStart = DateTime.Now.AddSeconds(30);
+
+                KillingSpree.StartSpree();
+                return;
+            }
+
+            switch (args.Parameters[0].ToLowerInvariant())
+            {
+                case "-bt":
+                case "-blitztype":
+                    if (args.Parameters.Count >= 2)
+                        config.BlitzEventType = args.Parameters[1];
+                    break;
+                case "-t":
+                case "-target":
+                    config.BlitzEventGoal = Int32.Parse(args.Parameters[1]);
+                    break;
+                case "-i":
+                case "-interval":
+                    config.BlitzEventLength = Int32.Parse(args.Parameters[1]);
+                    break;
+                case "-s":
+                case "-start":
+                    startSpree = new TimeSpan(0, 0, 0, 30);
+                    if (args.Parameters.Count >= 2)
+                        try
+                        {
+                            if (args.Parameters[1].Contains("h"))
+                                startSpree = DateTime.ParseExact(args.Parameters[1], "H'h'm'm'", CultureInfo.InvariantCulture).TimeOfDay;
+                            else
+                                startSpree = DateTime.ParseExact(args.Parameters[1], "m'm'", CultureInfo.InvariantCulture).TimeOfDay;
+                        }
+                        catch
+                        {
+                            args.Player.SendErrorMessage("Start is not a valid date/time.");
+                            return;
+                        }
+                    break;
+
+                case "-go":
+                     config.BlitzEventStart = DateTime.Now.Add(startSpree);
+                    KillingSpree.StartSpree();
+                    break;
+            }
+        }
 
         public static void Core(CommandArgs args)
         {
@@ -20,9 +76,22 @@ namespace Statistics
 
             if (args.Parameters.Count < 1)
             {
+                string options = "";
+                options += "-k(ills) - list the number of kills for the player";
+                options += "-t(ime) - show time on for player";
+                options += "-hs/highscores - list the top 5 players";
+                options += "-d(amage) - show the amount of damage";
+                options += "-s(een) - when the player was last seen";
+                options += "-l(ist) - show all the data for the player(s)";
+                options += "-s(top) - stops the Announcement feature";
+                options += "-prune <days> - will prune KillingSpree table of data before <days> ago";
+                options += "-o(ptions) will list all the values of the config file";
+                options += "-r(eload) will reload the current config file and set all the values and time intervals as specified";
+                options += "-n(otify) will send out all the announcements now. This will not impact the timing";
+
                 args.Player.SendErrorMessage("Invalid syntax. /stats [flag] <player name>");
-                args.Player.SendErrorMessage(
-                    "Valid flags: -l : list, -k : kills, -t : time, -s : seen, -hs : highscores, -d : damage");
+                args.Player.SendErrorMessage(options);
+
                 return;
             }
 
@@ -31,25 +100,26 @@ namespace Statistics
                 case "-kl":
                     var playerData = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
                     var userName = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
-                    KillingSpree.SendKillingNotice(playerData.Name, Int32.Parse(args.Parameters[1]));
+                    KillingSpree.SendKillingNotice(playerData.Name, Int32.Parse(args.Parameters[1]), 1, 0, 0);
                     break;
                 case "-km":
                     playerData = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
                     Statistics.database.UpdateKillingSpree(Int32.Parse(args.Parameters[1]), 1, 0, 0);
-                    KillingSpree.SendKillingNotice(playerData.Name, Int32.Parse(args.Parameters[1]));
+                    KillingSpree.SendKillingNotice(playerData.Name, Int32.Parse(args.Parameters[1]), 1, 0, 0);
                     break;
                 case "-kb":
                     playerData = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
                     Statistics.database.UpdateKillingSpree(Int32.Parse(args.Parameters[1]), 0, 1, 0);
-                    KillingSpree.SendKillingNotice(playerData.Name, Int32.Parse(args.Parameters[1]));
+                    KillingSpree.SendKillingNotice(playerData.Name, Int32.Parse(args.Parameters[1]), 0, 1, 0);
                     break;
                 case "-kp":
                     playerData = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
                     Statistics.database.UpdateKillingSpree(Int32.Parse(args.Parameters[1]), 0, 0, 1);
-                    KillingSpree.SendKillingNotice(playerData.Name, Int32.Parse(args.Parameters[1]));
+                    KillingSpree.SendKillingNotice(playerData.Name, Int32.Parse(args.Parameters[1]), 0, 0, 1);
                     break;
                 case "-kd":
                     Statistics.database.CloseKillingSpree(Int32.Parse(args.Parameters[1]));
+                    KillingSpree.ClearBlitzEvent(Int32.Parse(args.Parameters[1]));
                     break;
                 case "-o":
                 case "-options":
@@ -58,7 +128,7 @@ namespace Statistics
                     Announcements.ConsoleSendMessage(string.Format(" byTime {0}", config.byTime));
                     Announcements.ConsoleSendMessage(string.Format(" showTimeStamp {0}", config.showTimeStamp));
                     Announcements.ConsoleSendMessage(string.Format(" tellConsole {0}", config.tellConsole));
-                    //                    TSPlayer.Server.SendMessage(string.Format(" showTimeStamp {0}", config.showTimeStamp), Color.Green);
+                    Announcements.ConsoleSendMessage(string.Format(" consoleColor {0}", config.consoleColor));
 
                     Announcements.ConsoleSendMessage(string.Format(" showKills {0}", config.showKills));
                     Announcements.ConsoleSendMessage(string.Format(" KillstimeInterval {0}", config.KillstimeInterval));
@@ -75,6 +145,44 @@ namespace Statistics
                     Announcements.ConsoleSendMessage(string.Format(" DeathstimeOffset {0}", config.DeathstimeOffset));
                     Announcements.ConsoleSendMessage(string.Format(" DeathsColor {0}", string.Join(",", config.DeathsColor)));
 
+                    Announcements.ConsoleSendMessage(string.Format(" KillingSpree {0}", config.KillingSpree));
+                    Announcements.ConsoleSendMessage(string.Format(" KillingSpreeThreshold {0}", string.Join(",", config.KillingSpreeThreshold)));
+                    Announcements.ConsoleSendMessage(string.Format(" KillingSpreeMessage {0}", string.Join(",", config.KillingSpreeMessage)));
+                    Announcements.ConsoleSendMessage(string.Format(" KillingSpreeType {0}", config.KillingSpreeType));
+                    Announcements.ConsoleSendMessage(string.Format(" KillingSpreeColor {0}", string.Join(",", config.KillingSpreeColor)));
+
+                    Announcements.ConsoleSendMessage(string.Format(" SpreeStart {0}", config.BlitzEventStart));
+                    Announcements.ConsoleSendMessage(string.Format(" SpreeLength {0}", config.BlitzEventLength));
+                    Announcements.ConsoleSendMessage(string.Format(" SpreeEndByTime {0}", config.BlitzEventEndByTime));
+                    Announcements.ConsoleSendMessage(string.Format(" SpreeGoal {0}", config.BlitzEventGoal));
+                    Announcements.ConsoleSendMessage(string.Format(" SpreeType {0}", config.BlitzEventType));
+
+                    break;
+
+                case "-prune":
+                    if (args.Parameters.Count < 2)
+                    {
+                        args.Player.SendErrorMessage("No days specified for pruning.");
+                        return;
+                    }
+                    int days = 0;
+                    try
+                    {
+                        days = Int32.Parse(args.Parameters[1]);
+                    }
+                    catch
+                    {
+                        args.Player.SendErrorMessage("days specified is not numeric.");
+                        return;
+                    }
+                    if (days <= 0 || days >= 1000)
+                    {
+                        args.Player.SendErrorMessage("days must be > 0 and < 1000.");
+                        return;
+                    }
+                    int[] counts = Statistics.database.PruneKillingSpree(days);
+                    Announcements.ConsoleSendMessage(string.Format(" KillingSpree pruned {0} days: before[{1}] after[{2}].", Int32.Parse(args.Parameters[1]), counts[0], counts[1]));
+
                     break;
 
                 case "-r":
@@ -85,7 +193,6 @@ namespace Statistics
                     Announcements.ConsoleSendMessage(string.Format(" Announcements config reloaded"));
 
                     break;
-
                 case "-stop":
                     Statistics.config.isActive = false;
                     Announcements.stopAnnouncements();
@@ -169,21 +276,8 @@ namespace Statistics
                         }
                     }
                     break;
-                 case "-k":
-                 case "-kills":  
-                    /*
-                     * 						reader.Get<int>("UserID"),
-						reader.Get<int>("Logins"),
-						reader.Get<int>("Time"),
-						reader.Get<int>("Deaths"),
-						reader.Get<int>("PlayerKills"),
-						reader.Get<int>("MobKills"),
-						reader.Get<int>("BossKills"),
-						reader.Get<int>("MobDamageGiven"),
-						reader.Get<int>("BossDamageGiven"),
-						reader.Get<int>("PlayerDamageGiven"),
-						reader.Get<int>("DamageReceived")
-*/
+                case "-k":
+                case "-kills":
                     {
                         if (args.Parameters.Count < 2)
                         {

@@ -11,6 +11,9 @@ namespace Statistics
     public class Config
     {
         public bool isActive = true;
+        public bool tellConsole = true;
+        public ConsoleColor consoleColor = ConsoleColor.White;  // 15
+        public bool showTimeStamp = false;
 
         public bool byTime = true;
         public int KillstimeInterval = 10;    // in minutes
@@ -35,9 +38,12 @@ namespace Statistics
         public int[] KillingSpreeColor = { 0, 255, 0 };  // Green
         public string KillingSpreeType = "Mob";
 
-        public bool tellConsole = true;
-        public ConsoleColor consoleColor = ConsoleColor.White;  // 15
-        public bool showTimeStamp = false;
+        public DateTime BlitzEventStart = DateTime.Now;
+        public int BlitzEventLength = 30; // in seconds
+        public bool BlitzEventEndByTime = true;
+        public int BlitzEventGoal = 1;
+        public string BlitzEventType = "Mob";
+        public int[] BlitzEventColor = { 0, 255, 0 };  // Green
 
         /*  Console Colors index into zero based
 Black The color black. 

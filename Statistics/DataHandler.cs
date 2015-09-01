@@ -82,7 +82,7 @@ namespace Statistics
 					{
                         Statistics.database.UpdateKillingSpree(player.User.ID, 1, 0, 0);
 						Statistics.database.UpdateKills(player.User.ID, KillType.Mob);
-                        KillingSpree.SendKillingNotice(player.Name, player.User.ID); 
+                        KillingSpree.SendKillingNotice(player.Name, player.User.ID, 1, 0, 0); 
                         Statistics.SentDamageCache[player.Index][KillType.Mob] += Main.npc[npcId].life;
 						//Push damage to database on kill
 						Statistics.database.UpdateMobDamageGiven(player.User.ID, player.Index);
@@ -92,7 +92,7 @@ namespace Statistics
 					{
                         Statistics.database.UpdateKillingSpree(player.User.ID, 0, 1, 0);
                         Statistics.database.UpdateKills(player.User.ID, KillType.Boss);
-                        KillingSpree.SendKillingNotice(player.Name, player.User.ID); 
+                        KillingSpree.SendKillingNotice(player.Name, player.User.ID, 0, 1, 0); 
                         Statistics.SentDamageCache[player.Index][KillType.Boss] += Main.npc[npcId].life;
 						Statistics.database.UpdateBossDamageGiven(player.User.ID, player.Index);
 					}
@@ -140,7 +140,7 @@ namespace Statistics
 				{
                     Statistics.database.UpdateKillingSpree(Statistics.PlayerKilling[player].User.ID, 0, 0, 1);
                     Statistics.database.UpdateKills(Statistics.PlayerKilling[player].User.ID, KillType.Player);
-                    KillingSpree.SendKillingNotice(player.Name, player.User.ID); 
+                    KillingSpree.SendKillingNotice(player.Name, player.User.ID, 0, 0, 1); 
                     Statistics.database.UpdateHighScores(Statistics.PlayerKilling[player].User.ID);
 					Statistics.database.UpdatePlayerDamageGiven(Statistics.PlayerKilling[player].User.ID,
 						Statistics.PlayerKilling[player].Index);
@@ -157,6 +157,8 @@ namespace Statistics
 			Statistics.database.UpdateHighScores(player.User.ID);
 
             Statistics.database.CloseKillingSpree(player.User.ID);
+            KillingSpree.ClearBlitzEvent(player.User.ID);
+
 			return false;
 		}
 
