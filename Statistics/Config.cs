@@ -33,13 +33,8 @@ namespace Statistics
         public bool showDeaths = true;
 
         public bool KillingSpree = true;
-        public int[] KillingSpreeThreshold = {10, 20, 50, 75, 100};
-        public string[] KillingSpreeMessage = {"is on a killing spree!",
- "is on an ultra killing spree!",
- "is on an ultimate killing spree!",
- "is a Monster! They're killing everything!",
- "is an Unbelievable Player, they're unstoppable!"
- };
+        public int[] KillingSpreeThreshold = { 10, 20, 50, 75, 100 };
+        public string[] KillingSpreeMessage = {"is on a killing spree!", "is on an ultra killing spree!", "is on an ultimate killing spree!", "is a Monster! They're killing everything!", "is an Unbelievable Player, they're unstoppable!" };
         public int[] KillingSpreeColor = { 0, 255, 0 };  // Green
         public string KillingSpreeType = "Mob";
 
@@ -49,6 +44,11 @@ namespace Statistics
         public int BlitzEventGoal = 1;
         public string BlitzEventType = "Mob";
         public int[] BlitzEventColor = { 0, 255, 0 };  // Green
+
+        public bool SpeedSpree = false;
+        public int SpeedSpreeTimeout = 30;   // in seconds
+        public int[] SpeedSpreeColor = { 0, 255, 255 };  // Yellow
+        public string SpeedSpreeAnnouncement = "Speed Spree is on. Kill quickly or risk losing your killing spree.";
 
         /*  Console Colors index into zero based
 Black The color black. 
@@ -71,9 +71,9 @@ Black The color black.
         public static Config loadConfig(string configPath)
         {
             Config config = null;
-          (config = Read(configPath)).Write(configPath);
-            
-           return config;
+            (config = Read(configPath)).Write(configPath);
+
+            return config;
         }
 
         public void Write(string path)

@@ -34,7 +34,7 @@ namespace Statistics
         public static Config config { get; set; }
         public static string configPath = Path.Combine(TShock.SavePath, "StatsAnnouncements.json");
 
-
+        public static bool statsDebug = false;
 		public override string Author
 		{
 			get { return "Grandpa-G"; }     //Forked from WhiteXZ with permission
@@ -80,6 +80,7 @@ namespace Statistics
 
             TShockAPI.Commands.ChatCommands.Add(new Command("statistics.root", Commands.Core, "stats") { AllowServer = true });
             TShockAPI.Commands.ChatCommands.Add(new Command("statistics.blitzevent", Commands.BlitzMatch, "blitzevent", "be") { AllowServer = true });
+            TShockAPI.Commands.ChatCommands.Add(new Command("statistics.speedspree", Commands.SpeedSpree, "speedspree", "ss") { AllowServer = true });
         }
 
         private void OnGameInitialize(EventArgs args)
@@ -174,7 +175,8 @@ namespace Statistics
 			};
 
 			RecvDamageCache[args.Who] = 0;
-		}
+            SpeedKills.AnnounceSpree(args.Who);
+        }
 
 		private static void PlayerLeave(LeaveEventArgs args)
 		{

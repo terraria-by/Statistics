@@ -14,6 +14,33 @@ namespace Statistics
         public static TShockAPI.TSPlayer player;
         public static Config config = Statistics.config;
         private static TimeSpan startSpree = new TimeSpan(0, 0, 0, 30);
+
+        public static void SpeedSpree(CommandArgs args)
+        {
+            config = Statistics.config;
+            player = args.Player;
+
+            switch (args.Parameters[0].ToLowerInvariant())
+            {
+                case "-l":
+                    SpeedKills.listTimers();
+                    break;
+                case "-start":
+                    SpeedKills.StartSpeedKill();
+                    break;
+                case "-stop":
+                    SpeedKills.StopSpeedKill();
+                    break;
+                case "-i":
+                case "-interval":
+                    config.SpeedSpreeTimeout = Int32.Parse(args.Parameters[1]);
+                    break;
+                case "-p":
+                    SpeedKills.NewPlayer(Int32.Parse(args.Parameters[1]));
+                    break;
+            }
+        }
+
         public static void BlitzMatch(CommandArgs args)
         {
             config = Statistics.config;
@@ -62,7 +89,7 @@ namespace Statistics
                     break;
 
                 case "-go":
-                     config.BlitzEventStart = DateTime.Now.Add(startSpree);
+                    config.BlitzEventStart = DateTime.Now.Add(startSpree);
                     KillingSpree.StartSpree();
                     break;
             }
@@ -83,7 +110,7 @@ namespace Statistics
                 options += "-d(amage) - show the amount of damage";
                 options += "-s(een) - when the player was last seen";
                 options += "-l(ist) - show all the data for the player(s)";
-                options += "-s(top) - stops the Announcement feature";
+                options += "-stop - stops the Announcement feature";
                 options += "-prune <days> - will prune KillingSpree table of data before <days> ago";
                 options += "-o(ptions) will list all the values of the config file";
                 options += "-r(eload) will reload the current config file and set all the values and time intervals as specified";
@@ -97,33 +124,81 @@ namespace Statistics
 
             switch (args.Parameters[0].ToLowerInvariant())
             {
+                case "-debug":
+                    if (args.Player.RealPlayer)
+                    {
+                        args.Player.SendErrorMessage("Invalid stats option");
+                        return;
+                    }
+                    Statistics.statsDebug = true;
+                    Console.WriteLine("Debug mode set");
+                    break;
                 case "-kl":
+                    if (args.Player.RealPlayer)
+                    {
+                        args.Player.SendErrorMessage("Invalid stats option");
+                        return;
+                    }
                     var playerData = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
                     var userName = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
                     KillingSpree.SendKillingNotice(playerData.Name, Int32.Parse(args.Parameters[1]), 1, 0, 0);
                     break;
                 case "-km":
+                    if (args.Player.RealPlayer)
+                    {
+                        args.Player.SendErrorMessage("Invalid stats option");
+                        return;
+                    }
                     playerData = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
+                    if (args.Player.RealPlayer)
+                    {
+                        args.Player.SendErrorMessage("Invalid stats option");
+                        return;
+                    }
                     Statistics.database.UpdateKillingSpree(Int32.Parse(args.Parameters[1]), 1, 0, 0);
                     KillingSpree.SendKillingNotice(playerData.Name, Int32.Parse(args.Parameters[1]), 1, 0, 0);
                     break;
                 case "-kb":
+                    if (args.Player.RealPlayer)
+                    {
+                        args.Player.SendErrorMessage("Invalid stats option");
+                        return;
+                    }
                     playerData = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
                     Statistics.database.UpdateKillingSpree(Int32.Parse(args.Parameters[1]), 0, 1, 0);
                     KillingSpree.SendKillingNotice(playerData.Name, Int32.Parse(args.Parameters[1]), 0, 1, 0);
                     break;
+                case "-kk":
+                    SpeedKills.PlayerKill(Int32.Parse(args.Parameters[1]));
+                    break;
                 case "-kp":
+                    if (args.Player.RealPlayer)
+                    {
+                        args.Player.SendErrorMessage("Invalid stats option");
+                        return;
+                    }
                     playerData = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
                     Statistics.database.UpdateKillingSpree(Int32.Parse(args.Parameters[1]), 0, 0, 1);
                     KillingSpree.SendKillingNotice(playerData.Name, Int32.Parse(args.Parameters[1]), 0, 0, 1);
                     break;
                 case "-kd":
+                    if (args.Player.RealPlayer)
+                    {
+                        args.Player.SendErrorMessage("Invalid stats option");
+                        return;
+                    }
                     Statistics.database.CloseKillingSpree(Int32.Parse(args.Parameters[1]));
                     KillingSpree.ClearBlitzEvent(Int32.Parse(args.Parameters[1]));
                     break;
+
                 case "-o":
                 case "-options":
 
+                    if (args.Player.RealPlayer)
+                    {
+                        args.Player.SendErrorMessage("Invalid stats option");
+                        return;
+                    }
                     Announcements.ConsoleSendMessage(string.Format(" isActive {0}", config.isActive));
                     Announcements.ConsoleSendMessage(string.Format(" byTime {0}", config.byTime));
                     Announcements.ConsoleSendMessage(string.Format(" showTimeStamp {0}", config.showTimeStamp));
@@ -205,13 +280,18 @@ namespace Statistics
 
                     break;
 
-                case "-init":
-                    Statistics.database.dropTables();
-                    Statistics.OnInitialize(null);
-                    break;
+//                case "-init":
+//                    Statistics.database.dropTables();
+//                    Statistics.OnInitialize(null);
+//                    break;
 
                 case "-n":
                 case "-notify":
+                    if (args.Player.RealPlayer)
+                    {
+                        args.Player.SendErrorMessage("Invalid stats option");
+                        return;
+                    }
                     if (args.Parameters.Count < 2)
                         Announcements.SendNoticeAll("");
                     else

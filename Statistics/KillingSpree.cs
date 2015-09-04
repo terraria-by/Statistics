@@ -36,6 +36,7 @@ namespace Statistics
             int slot = 0; 
             int[] killList;
             string killType = "";
+
             killList = Statistics.database.GetKills(playerId);
             if (inBlitzEvent)
             {
@@ -146,10 +147,9 @@ namespace Statistics
             }
             double startSpree = (config.BlitzEventStart - date).TotalMilliseconds;
 
-
-            TSPlayer.All.SendMessage(string.Format("A {1} blitz will start at {0}, good luck!", config.BlitzEventStart, config.BlitzEventLength), Convert.ToByte(config.KillingSpreeColor[0]), Convert.ToByte(config.KillingSpreeColor[1]), Convert.ToByte(config.KillingSpreeColor[2]));
+            TSPlayer.All.SendMessage(string.Format("A {1}blitz will start at {0}, good luck!", config.BlitzEventStart, FormatTimeSpan(new TimeSpan(0, 0, config.BlitzEventLength))), Convert.ToByte(config.KillingSpreeColor[0]), Convert.ToByte(config.KillingSpreeColor[1]), Convert.ToByte(config.KillingSpreeColor[2]));
             if (config.tellConsole)
-                Announcements.ConsoleSendMessage(string.Format(" A {1} blitz will start at {0}, good luck!", config.BlitzEventStart, config.BlitzEventLength));
+                Announcements.ConsoleSendMessage(string.Format(" A {1}blitz will start at {0}, good luck!", config.BlitzEventStart, FormatTimeSpan(new TimeSpan(0, 0, config.BlitzEventLength))));
 
             SpreeTimer.Stop();
             SpreeTimer.Interval = startSpree;    // in seconds
@@ -210,5 +210,39 @@ namespace Statistics
                 inBlitzEvent = true;
             }
         }
+
+        public static string FormatTimeSpan(this TimeSpan obj)
+    {
+        StringBuilder sb = new StringBuilder();
+        if (obj.Hours != 0)
+        {
+            sb.Append(obj.Hours);
+            sb.Append(" "); 
+            sb.Append("hrs");
+            sb.Append(" ");
+        }
+        if (obj.Minutes != 0)
+        {
+            sb.Append(obj.Minutes);
+            sb.Append(" "); 
+            sb.Append("mins");
+            sb.Append(" ");
+        }
+        if (obj.Seconds != 0)
+        {
+            sb.Append(obj.Seconds);
+            sb.Append(" "); 
+            sb.Append("secs");
+            sb.Append(" ");
+        }
+        if (obj.Milliseconds != 0 )
+        {
+            sb.Append(obj.Milliseconds);
+            sb.Append(" "); 
+            sb.Append("Milliseconds");
+            sb.Append(" ");
+        }
+        return sb.ToString();
+    }
     }
 }
