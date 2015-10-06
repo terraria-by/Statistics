@@ -151,6 +151,8 @@ namespace Statistics
             if (config.tellConsole)
                 Announcements.ConsoleSendMessage(string.Format(" A {1}blitz will start at {0}, good luck!", config.BlitzEventStart, FormatTimeSpan(new TimeSpan(0, 0, config.BlitzEventLength))));
 
+            beatClock = false;
+
             SpreeTimer.Stop();
             SpreeTimer.Interval = startSpree;    // in seconds
             SpreeTimer.Start();
