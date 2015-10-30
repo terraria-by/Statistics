@@ -14,7 +14,7 @@ using System.Reflection;
 
 namespace Statistics
 {
-	[ApiVersion(1, 21)]
+	[ApiVersion(1, 22)]
 	public class Statistics : TerrariaPlugin
 	{
 		internal static Database tshock;
