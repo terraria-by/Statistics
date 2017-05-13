@@ -379,7 +379,9 @@ namespace Statistics
                         else
                         {
                             var name = args.Parameters[1];
-                            var user = TShock.Users.GetUsers().Find(u => u.Name.StartsWith(name));
+                            var user = TShock.Users.GetUsers().Find(
+                              u => u.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
+                              );
                             if (user == null)
                                 args.Player.SendErrorMessage("No users found matching the name '{0}'", name);
                             else
