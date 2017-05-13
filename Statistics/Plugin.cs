@@ -182,11 +182,12 @@ namespace Statistics
 		{
 			if (TShock.Players[args.Who] == null) return;
 
-            KillingSpree.ClearBlitzEvent(TShock.Players[args.Who].User.ID);
+      if (TShock.Players[args.Who].User != null)
+        KillingSpree.ClearBlitzEvent(TShock.Players[args.Who].User.ID);
 			if (PlayerKilling.ContainsKey(TShock.Players[args.Who]))
 				PlayerKilling.Remove(TShock.Players[args.Who]);
 
-			if (TShock.Players[args.Who].IsLoggedIn)
+			if (TShock.Players[args.Who].User != null && TShock.Players[args.Who].IsLoggedIn)
 			{
 				database.UpdateTime(TShock.Players[args.Who].User.ID, TimeCache[args.Who]);
 				TimeCache[args.Who] = 0;
