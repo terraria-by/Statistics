@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Microsoft.Xna.Framework;
 using TShockAPI;
 using TerrariaApi.Server;
 using Terraria; 
-using Terraria.ID; 
+using Terraria.ID;
+using Terraria.Localization;
 
 namespace Statistics
 {
@@ -21,7 +22,7 @@ namespace Statistics
             Color c = Color.Red;
             string message = "BANG";
             Announcements.ConsoleSendMessage(message + ":" + id);
-            NetMessage.SendData((int)PacketTypes.CreateCombatText, -1, -1, message, (int)c.PackedValue, Main.npc[id].position.X, Main.npc[id].position.Y);
+            NetMessage.SendData((int)PacketTypes.CreateCombatText, -1, -1, NetworkText.FromLiteral(message), (int)c.PackedValue, Main.npc[id].position.X, Main.npc[id].position.Y);
         }
     }
 }

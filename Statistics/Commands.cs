@@ -6,6 +6,7 @@ using TShockAPI.DB;
 using System.IO;
 using System.Reflection;
 using System.Globalization;
+using Microsoft.Xna.Framework;
 
 namespace Statistics
 {
