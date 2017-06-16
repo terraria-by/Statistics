@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Terraria;
+using Terraria.ID;
 using System.IO;
 using TShockAPI;
 using System.IO.Streams;
@@ -53,6 +54,43 @@ namespace Statistics
 			return false;
 		}
 
+	  private static readonly int[] _nonTargetingAI =
+	  {
+	    75, // Rider AI, usually boss parts and mobs riding each other
+      80  // Martian probe
+	  };
+
+	  private static readonly int[] _nonTargetingMobTypes =
+	  {
+	    NPCID.CultistArcherBlue,
+	    NPCID.CultistArcherWhite,
+	    NPCID.CultistDevote,
+      NPCID.CultistBoss
+	  };
+
+
+    private static bool IsTargeting(NPC npc)
+	  {
+	    if (npc.target > 255)
+	    {
+	      if (_nonTargetingAI.Contains(npc.aiStyle))
+	        return true;
+        else if (_nonTargetingMobTypes.Contains(npc.type))
+	        return true;
+	      else
+	        return false;
+	    }
+
+	    return true;
+	  }
+
+	  private static readonly int[] _bossParts =
+	  {
+	    NPCID.MartianSaucer,
+	    NPCID.MartianSaucerCannon,
+	    NPCID.MartianSaucerTurret
+    };
+
 		private static bool HandleNpcEvent(GetDataHandlerArgs args)
 		{
 			if (args.Player == null) return false;
@@ -66,7 +104,7 @@ namespace Statistics
 			if (player == null)
 				return false;
 
-			if (Main.npc[npcId].target < 255)
+			if (IsTargeting(Main.npc[npcId]))
 			{
 				var critical = 1;
 				if (crit)
@@ -106,10 +144,10 @@ namespace Statistics
 				}
 				else
 				{
-					if (!Main.npc[npcId].boss)
-						Statistics.SentDamageCache[player.Index][KillType.Mob] += hitDamage;
-					else
-						Statistics.SentDamageCache[player.Index][KillType.Boss] += hitDamage;
+				  if (Main.npc[npcId].boss || _bossParts.Contains(Main.npc[npcId].type)) // boss parts
+				    Statistics.SentDamageCache[player.Index][KillType.Boss] += hitDamage;
+				  else
+				    Statistics.SentDamageCache[player.Index][KillType.Mob] += hitDamage;
 				}
 			}
 			else
