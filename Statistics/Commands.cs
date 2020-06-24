@@ -140,8 +140,8 @@ namespace Statistics
                         args.Player.SendErrorMessage("Invalid stats option");
                         return;
                     }
-                    var playerData = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
-                    var userName = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
+                    var playerData = TShock.UserAccounts.GetUserAccountByID(Int32.Parse(args.Parameters[1])); // byDii
+                    var userName = TShock.UserAccounts.GetUserAccountByID(Int32.Parse(args.Parameters[1])); // byDii
                     KillingSpree.SendKillingNotice(playerData.Name, Int32.Parse(args.Parameters[1]), 1, 0, 0);
                     break;
                 case "-km":
@@ -150,7 +150,7 @@ namespace Statistics
                         args.Player.SendErrorMessage("Invalid stats option");
                         return;
                     }
-                    playerData = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
+                    playerData = TShock.UserAccounts.GetUserAccountByID(Int32.Parse(args.Parameters[1])); // byDii
                     if (args.Player.RealPlayer)
                     {
                         args.Player.SendErrorMessage("Invalid stats option");
@@ -165,7 +165,7 @@ namespace Statistics
                         args.Player.SendErrorMessage("Invalid stats option");
                         return;
                     }
-                    playerData = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
+                    playerData = TShock.UserAccounts.GetUserAccountByID(Int32.Parse(args.Parameters[1])); // byDii
                     Statistics.database.UpdateKillingSpree(Int32.Parse(args.Parameters[1]), 0, 1, 0);
                     KillingSpree.SendKillingNotice(playerData.Name, Int32.Parse(args.Parameters[1]), 0, 1, 0);
                     break;
@@ -178,7 +178,7 @@ namespace Statistics
                         args.Player.SendErrorMessage("Invalid stats option");
                         return;
                     }
-                    playerData = TShock.Users.GetUserByID(Int32.Parse(args.Parameters[1]));
+                    playerData = TShock.UserAccounts.GetUserAccountByID(Int32.Parse(args.Parameters[1])); // byDii
                     Statistics.database.UpdateKillingSpree(Int32.Parse(args.Parameters[1]), 0, 0, 1);
                     KillingSpree.SendKillingNotice(playerData.Name, Int32.Parse(args.Parameters[1]), 0, 0, 1);
                     break;
@@ -339,7 +339,7 @@ namespace Statistics
                             }
                             else
                             {
-                                var user = TShock.Users.GetUsers().Find(u => u.Name.StartsWith(args.Parameters[1]));
+                                var user = TShock.UserAccounts.GetUserAccounts().Find(u => u.Name.StartsWith(args.Parameters[1])); // byDii
 
                                 if (user == null)
                                     args.Player.SendErrorMessage("No users found matching the name '{0}'", args.Parameters[1]);
@@ -367,7 +367,7 @@ namespace Statistics
                     {
                         if (args.Parameters.Count < 2)
                         {
-                            var kills = Statistics.database.GetCurrentKills(args.Player.User.ID);
+                            var kills = Statistics.database.GetCurrentKills(args.Player.Account.ID); // byDii
                             if (kills == null)
                                 args.Player.SendErrorMessage("Unable to discover your killcount. Sorry.");
                             else
@@ -379,7 +379,7 @@ namespace Statistics
                         else
                         {
                             var name = args.Parameters[1];
-                            var user = TShock.Users.GetUsers().Find(
+                            var user = TShock.UserAccounts.GetUserAccounts().Find( // byDii
                               u => u.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
                               );
                             if (user == null)
@@ -407,7 +407,7 @@ namespace Statistics
                         var logins = 1;
                         if (args.Parameters.Count < 2)
                         {
-                            var times = Statistics.database.GetTimes(args.Player.User.ID, ref logins);
+                            var times = Statistics.database.GetTimes(args.Player.Account.ID, ref logins); // byDii
                             if (times == null)
                                 args.Player.SendErrorMessage("Unable to discover your times. Sorry.");
                             else
@@ -512,7 +512,7 @@ namespace Statistics
                     {
                         if (args.Parameters.Count < 2)
                         {
-                            var damages = Statistics.database.GetDamage(args.Player.User.ID);
+                            var damages = Statistics.database.GetDamage(args.Player.Account.ID); // byDii
                             if (damages == null)
                             {
                                 args.Player.SendErrorMessage("Unable to discover your damage statistics. Sorry.");
@@ -559,14 +559,14 @@ namespace Statistics
             }
         }
 
-        private static List<User> GetUsers(string username)
+        private static List<UserAccount> GetUsers(string username) // byDii
         {
-            var users = TShock.Users.GetUsers();
-            var ret = new List<User>();
+            var users = TShock.UserAccounts.GetUserAccounts(); // byDii
+            var ret = new List<UserAccount>(); // byDii
             foreach (var user in users)
             {
                 if (user.Name.Equals(username))
-                    return new List<User> { user };
+                    return new List<UserAccount> { user }; // byDii
                 if (user.Name.StartsWith(username))
                     ret.Add(user);
             }

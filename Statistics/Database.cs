@@ -147,7 +147,7 @@ namespace Statistics
             {
                 while (reader.Read())
                 {
-                    var user = TShock.Users.GetUserByID(reader.Get<int>("UserID"));
+                    var user = TShock.UserAccounts.GetUserAccountByID(reader.Get<int>("UserID")); // byDii
                     if (user == null) continue;
                     int[] stats = new[]
 					{
@@ -211,7 +211,7 @@ namespace Statistics
             {
                 while (reader.Read())
                 {
-                    var user = TShock.Users.GetUserByID(reader.Get<int>("UserID"));
+                    var user = TShock.UserAccounts.GetUserAccountByID(reader.Get<int>("UserID")); // byDii
                     if (user == null) continue;
                     items.Add(new KeyValuePair<string, int>(user.Name, reader.Get<int>(sortBy)));
                 }
@@ -399,7 +399,7 @@ namespace Statistics
             {
                 while (reader.Read())
                 {
-                    var user = TShock.Users.GetUserByID(reader.Get<int>("UserID"));
+                    var user = TShock.UserAccounts.GetUserAccountByID(reader.Get<int>("UserID")); // byDii
                     if (user == null) continue;
                     ret.Add(user.Name, reader.Get<int>("Score"));
                 }

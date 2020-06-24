@@ -149,7 +149,7 @@ namespace Statistics
                 if (speedTimers[i] == source)
                 {
                     ResetPlayer(i);
-                    Statistics.database.CloseKillingSpree(TShock.Players[i].User.ID);
+                    Statistics.database.CloseKillingSpree(TShock.Players[i].Account.ID); // byDii
                     string output = "You have lost your killing spree!";
                     TShock.Players[i].SendMessage(output, Convert.ToByte(config.SpeedSpreeColor[0]), Convert.ToByte(config.SpeedSpreeColor[1]), Convert.ToByte(config.SpeedSpreeColor[2]));
                     if (Statistics.statsDebug)

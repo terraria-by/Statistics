@@ -175,7 +175,7 @@ namespace Statistics
                 else
                 {
                     int playerId = KillingSpreeMatch.FirstOrDefault(x => x.Value == KillingSpreeMatch.Values.Max()).Key;
-                    var player = TShock.Users.GetUserByID(playerId);
+                    var player = TShock.UserAccounts.GetUserAccountByID(playerId); // byDii
 
                     if (beatClock)
                     {

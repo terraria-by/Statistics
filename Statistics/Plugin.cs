@@ -138,7 +138,7 @@ namespace Statistics
 			foreach (var player in TShock.Players)
 				if (player != null && player.ConnectionAlive && player.RealPlayer && player.IsLoggedIn)
 				{
-					database.UpdateTime(player.User.ID, TimeCache[player.Index]);
+					database.UpdateTime(player.Account.ID, TimeCache[player.Index]); // byDii
 					TimeCache[player.Index] = 0;
 				}
 		}
@@ -152,8 +152,8 @@ namespace Statistics
 
 		private static void PlayerPostLogin(PlayerPostLoginEventArgs args)
 		{
-			database.CheckUpdateInclude(args.Player.User.ID);
-            database.UpdateKillingSpree(args.Player.User.ID, 0, 0, 0);
+			database.CheckUpdateInclude(args.Player.Account.ID); // byDii
+            database.UpdateKillingSpree(args.Player.Account.ID, 0, 0, 0); // byDii
 		}
 
 		private static void GreetPlayer(GreetPlayerEventArgs args)
@@ -182,14 +182,14 @@ namespace Statistics
 		{
 			if (TShock.Players[args.Who] == null) return;
 
-      if (TShock.Players[args.Who].User != null)
-        KillingSpree.ClearBlitzEvent(TShock.Players[args.Who].User.ID);
+      if (TShock.Players[args.Who].Account != null) // byDii
+        KillingSpree.ClearBlitzEvent(TShock.Players[args.Who].Account.ID); // byDii
 			if (PlayerKilling.ContainsKey(TShock.Players[args.Who]))
 				PlayerKilling.Remove(TShock.Players[args.Who]);
 
-			if (TShock.Players[args.Who].User != null && TShock.Players[args.Who].IsLoggedIn)
+			if (TShock.Players[args.Who].Account != null && TShock.Players[args.Who].IsLoggedIn) // byDii
 			{
-				database.UpdateTime(TShock.Players[args.Who].User.ID, TimeCache[args.Who]);
+				database.UpdateTime(TShock.Players[args.Who].Account.ID, TimeCache[args.Who]); // byDii
 				TimeCache[args.Who] = 0;
 			}
 		}

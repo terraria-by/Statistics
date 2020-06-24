@@ -118,29 +118,29 @@ namespace Statistics
 					//not a boss kill
 					if (!Main.npc[npcId].boss && !Main.npc[npcId].friendly)
 					{
-                        Statistics.database.UpdateKillingSpree(player.User.ID, 1, 0, 0);
-						Statistics.database.UpdateKills(player.User.ID, KillType.Mob);
-                        KillingSpree.SendKillingNotice(player.Name, player.User.ID, 1, 0, 0);
+                        Statistics.database.UpdateKillingSpree(player.Account.ID, 1, 0, 0); // byDii
+						Statistics.database.UpdateKills(player.Account.ID, KillType.Mob); // byDii
+                        KillingSpree.SendKillingNotice(player.Name, player.Account.ID, 1, 0, 0); // byDii
                         SpeedKills.PlayerKill(index);
                         Statistics.SentDamageCache[player.Index][KillType.Mob] += Main.npc[npcId].life;
 						//Push damage to database on kill
-						Statistics.database.UpdateMobDamageGiven(player.User.ID, player.Index);
+						Statistics.database.UpdateMobDamageGiven(player.Account.ID, player.Index); // byDii
 					}
 					//a boss kill
 					else
 					{
-                        Statistics.database.UpdateKillingSpree(player.User.ID, 0, 1, 0);
-                        Statistics.database.UpdateKills(player.User.ID, KillType.Boss);
-                        KillingSpree.SendKillingNotice(player.Name, player.User.ID, 0, 1, 0);
+                        Statistics.database.UpdateKillingSpree(player.Account.ID, 0, 1, 0); // byDii
+                        Statistics.database.UpdateKills(player.Account.ID, KillType.Boss); // byDii
+                        KillingSpree.SendKillingNotice(player.Name, player.Account.ID, 0, 1, 0); // byDii
                         SpeedKills.PlayerKill(index); 
                         Statistics.SentDamageCache[player.Index][KillType.Boss] += Main.npc[npcId].life;
-						Statistics.database.UpdateBossDamageGiven(player.User.ID, player.Index);
+						Statistics.database.UpdateBossDamageGiven(player.Account.ID, player.Index); // byDii
 					}
 
 					//Push player damage dealt and damage received as well
-					Statistics.database.UpdatePlayerDamageGiven(player.User.ID, player.Index);
-					Statistics.database.UpdateDamageReceived(player.User.ID, player.Index);
-					Statistics.database.UpdateHighScores(player.User.ID);
+					Statistics.database.UpdatePlayerDamageGiven(player.Account.ID, player.Index); // byDii
+					Statistics.database.UpdateDamageReceived(player.Account.ID, player.Index); // byDii
+					Statistics.database.UpdateHighScores(player.Account.ID); // byDii
 				}
 				else
 				{
@@ -178,27 +178,27 @@ namespace Statistics
 				//Only update killer if the killer is logged in
 				if (Statistics.PlayerKilling[player].IsLoggedIn && pvp)
 				{
-                    Statistics.database.UpdateKillingSpree(Statistics.PlayerKilling[player].User.ID, 0, 0, 1);
-                    Statistics.database.UpdateKills(Statistics.PlayerKilling[player].User.ID, KillType.Player);
-                    KillingSpree.SendKillingNotice(player.Name, player.User.ID, 0, 0, 1);
+                    Statistics.database.UpdateKillingSpree(Statistics.PlayerKilling[player].Account.ID, 0, 0, 1); // byDii
+                    Statistics.database.UpdateKills(Statistics.PlayerKilling[player].Account.ID, KillType.Player); // byDii
+                    KillingSpree.SendKillingNotice(player.Name, player.Account.ID, 0, 0, 1); // byDii
                     SpeedKills.PlayerKill(index); 
-                    Statistics.database.UpdateHighScores(Statistics.PlayerKilling[player].User.ID);
-					Statistics.database.UpdatePlayerDamageGiven(Statistics.PlayerKilling[player].User.ID,
+                    Statistics.database.UpdateHighScores(Statistics.PlayerKilling[player].Account.ID); // byDii
+					Statistics.database.UpdatePlayerDamageGiven(Statistics.PlayerKilling[player].Account.ID, // byDii
 						Statistics.PlayerKilling[player].Index);
-					Statistics.database.UpdateDamageReceived(Statistics.PlayerKilling[player].User.ID,
+					Statistics.database.UpdateDamageReceived(Statistics.PlayerKilling[player].Account.ID, // byDii
 						Statistics.PlayerKilling[player].Index);
 				}
 				Statistics.PlayerKilling[player] = null;
  			}
 
-			Statistics.database.UpdateDeaths(player.User.ID);
-			Statistics.database.UpdatePlayerDamageGiven(player.User.ID, player.Index);
+			Statistics.database.UpdateDeaths(player.Account.ID); // byDii
+			Statistics.database.UpdatePlayerDamageGiven(player.Account.ID, player.Index); // byDii
 			//update all received damage on death
-			Statistics.database.UpdateDamageReceived(player.User.ID, player.Index);
-			Statistics.database.UpdateHighScores(player.User.ID);
+			Statistics.database.UpdateDamageReceived(player.Account.ID, player.Index); // byDii
+			Statistics.database.UpdateHighScores(player.Account.ID); // byDii
 
-            Statistics.database.CloseKillingSpree(player.User.ID);
-            KillingSpree.ClearBlitzEvent(player.User.ID);
+            Statistics.database.CloseKillingSpree(player.Account.ID); // byDii
+            KillingSpree.ClearBlitzEvent(player.Account.ID); // byDii
             SpeedKills.ResetPlayer(index);
 
 			return false;

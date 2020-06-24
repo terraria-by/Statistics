@@ -148,7 +148,7 @@ namespace Statistics
 				if (index == 3)
 					lineColor = Color.OrangeRed;
 
-				if (string.Equals(hsName, player.User.Name, StringComparison.CurrentCultureIgnoreCase))
+				if (string.Equals(hsName, player.Account.Name, StringComparison.CurrentCultureIgnoreCase)) // byDii
 					lineColor = Color.White;
 
 				if (!string.IsNullOrEmpty(hsName))
