@@ -31,9 +31,9 @@ namespace Statistics
 		{
 			_getDataHandlerDelegates = new Dictionary<PacketTypes, GetDataHandlerDelegate>
 			{
-				{PacketTypes.PlayerKillMe, HandlePlayerKillMe},
-				{PacketTypes.PlayerDamage, HandlePlayerDamage},
-				{PacketTypes.NpcStrike, HandleNpcEvent}
+				{PacketTypes.PlayerDeathV2, HandlePlayerKillMe}, // 44 .PlayerKillMe
+				{PacketTypes.PlayerHurtV2, HandlePlayerDamage}, // 26 .PlayerDamage
+				{PacketTypes.NpcStrike, HandleNpcEvent} // 28
 			};
 		}
 
@@ -223,7 +223,7 @@ namespace Statistics
 			//Attacking player
 			Statistics.PlayerKilling[player] = index != playerId ? args.Player : null;
 
-			damage = (short) Main.CalculateDamage(damage, player.TPlayer.statDefense);
+			damage = (short) Main.CalculateDamagePlayersTake(damage, player.TPlayer.statDefense); // .CalculateDamage
 
 			if (Statistics.PlayerKilling[player] != null)
 			{
