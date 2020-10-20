@@ -223,7 +223,7 @@ namespace Statistics
 			//Attacking player
 			Statistics.PlayerKilling[player] = index != playerId ? args.Player : null;
 
-			damage = (short) Main.CalculateDamagePlayersTake(damage, player.TPlayer.statDefense); // .CalculateDamage
+			damage = (short) Main.CalculateDamagePlayersTakeInPVP(damage, player.TPlayer.statDefense); // .CalculateDamage
 
 			if (Statistics.PlayerKilling[player] != null)
 			{

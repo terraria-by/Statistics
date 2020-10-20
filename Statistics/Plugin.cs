@@ -32,7 +32,7 @@ namespace Statistics
 
 //        public static Config config = new Config();
         public static Config config { get; set; }
-        public static string configPath = Path.Combine(TShock.SavePath, "StatsAnnouncements.json");
+        public static string configPath = Path.Combine(TShock.SavePath, "Statistics.json");
 
         public static bool statsDebug = false;
 		public override string Author
@@ -70,6 +70,7 @@ namespace Statistics
             ServerApi.Hooks.GamePostInitialize.Register(this, OnGameInitialize);
 
 			PlayerHooks.PlayerPostLogin += PlayerPostLogin;
+            GeneralHooks.ReloadEvent += OnReload;
 
 			GetDataHandlers.InitGetDataHandler();
 
@@ -131,7 +132,8 @@ namespace Statistics
         private void OnReload(ReloadEventArgs args)
         {
             config = Config.loadConfig(configPath);
-        }
+            args.Player.SendSuccessMessage("[Statistics] Successfully reloaded config");
+		}
 
 		private static void TimeSaverOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
 		{
@@ -239,6 +241,7 @@ namespace Statistics
 				ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
 
 				PlayerHooks.PlayerPostLogin -= PlayerPostLogin;
+                GeneralHooks.ReloadEvent -= OnReload;
 			}
 			base.Dispose(disposing);
 		}

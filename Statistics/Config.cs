@@ -76,16 +76,28 @@ Black The color black.
             return config;
         }
 
-        public void Write(string path)
+        public void Write(string configPath)
         {
-            File.WriteAllText(path, JsonConvert.SerializeObject(this, Formatting.Indented));
+            File.WriteAllText(configPath, JsonConvert.SerializeObject(this, Formatting.Indented));
         }
 
-        public static Config Read(string path)
+        public static Config Read(string configPath)
         {
-            return !File.Exists(path)
-                ? new Config()
-                : JsonConvert.DeserializeObject<Config>(File.ReadAllText(path));
+            Config result;
+            if (!File.Exists(configPath)) {
+                result = new Config();
+            }
+            else {
+                result = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath)); ;
+            }
+
+            result.Write(configPath);
+
+            return result;
+
+            //   return !File.Exists(configPath)
+            //       ? new Config()
+            //       : JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
         }
     }
 }
